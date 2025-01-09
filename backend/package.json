@@ -18,6 +18,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "pg": "^8.13.1",
+    "prisma": "^6.2.1",
     "types-node": "^0.0.1-security",
     "typescript": "^5.7.2"
   },
