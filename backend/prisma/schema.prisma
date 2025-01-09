@@ -18,4 +18,29 @@ model users {
   email   String   @unique
   name    String?
   password   String?
+  tournament tournaments[]
+}
+
+model tournaments {
+  tournamentId       Int      @id @default(autoincrement())
+  name     String
+  teamsName String[]
+  organizerName String
+  organizer users  @relation(fields: [organizerId], references: [id])
+  organizerId Int
+  teams teams[]
+}
+
+model teams{
+  id Int @id @default(autoincrement())
+  name String
+  tournamentName String?
+  tournament  tournaments @relation(fields: [tournamentId], references: [tournamentId])
+  tournamentId Int
+  players String[]
+}
+
+model players{
+  id Int @id @default(autoincrement())
+  name String
 }
