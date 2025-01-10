@@ -65,7 +65,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(organizerPassword, 10);
         const updatedOrganizer = await prisma.organizers.update({
             where: {
-                id: Number(id),
+                organizerId: Number(id),
             },
             data: {
                 organizerName,
@@ -92,7 +92,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     try {
         const deletedOrganizer = await prisma.organizers.delete({
             where: {
-                id: Number(id),
+                organizerId: Number(id),
             },
         });
         res.status(200).json(deletedOrganizer);
