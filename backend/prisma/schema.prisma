@@ -1,46 +1,76 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+    // This is your Prisma schema file,
+    // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+    // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+    // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-  provider = "prisma-client-js"
+    generator client {
+      provider = "prisma-client-js"
+    }
+
+    datasource db {
+      provider = "postgresql"
+      url      = env("DATABASE_URL")
+    }
+
+    model users {
+      userId      Int      @id @default(autoincrement())
+      userEmail   String   @unique
+      userName    String?
+      userPassword   String?
+      tournament tournaments[]
+    }
+
+    model tournaments {
+      tournamentId       Int      @id @default(autoincrement())
+      tournamentName     String
+      teamsName String[]
+      organizer users  @relation(fields: [organizerId], references: [userId])
+      organizerId Int
+      teams teams[]
+      matches matches[]
+    }
+
+    model teams{
+      teamId Int @id @default(autoincrement())
+      teamName String
+      tournamentName String?
+      tournament  tournaments @relation(fields: [tournamentId], references: [tournamentId])
+      tournamentId Int
+      playersName String[]
+
+      @@unique([teamId, teamName])
+    }
+
+    model players{  
+      playersId Int @id @default(autoincrement())
+      playerName String
+      age Int
+      @@unique([playerName])
+
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model users {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  password   String?
-  tournament tournaments[]
-}
-
-model tournaments {
-  tournamentId       Int      @id @default(autoincrement())
-  name     String
-  teamsName String[]
-  organizerName String
-  organizer users  @relation(fields: [organizerId], references: [id])
-  organizerId Int
-  teams teams[]
-}
-
-model teams{
-  id Int @id @default(autoincrement())
-  name String
+model matches {
+  matchId            Int          @id @default(autoincrement())
   tournamentName String?
-  tournament  tournaments @relation(fields: [tournamentId], references: [tournamentId])
-  tournamentId Int
-  players String[]
+  tournament    tournaments  @relation(fields: [tournamentId], references: [tournamentId])
+  tournamentId  Int
+  team1Id       Int
+  team2Id       Int
+  team1Name     String
+  team2Name     String
+  matchStats    matchStats[] 
 }
 
-model players{
-  id Int @id @default(autoincrement())
-  name String
+model matchStats {
+  matchStatsId        Int      @id @default(autoincrement())  
+  match     matches  @relation(fields: [matchId], references: [matchId]) 
+  matchId   Int      
+  playerName String
+  teamId    Int 
+  teamName  String
+  runs      Int      
+  wickets   Int      
+  balls     Int      
+  overs     String   
 }

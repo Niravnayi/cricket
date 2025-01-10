@@ -13,16 +13,15 @@ router.get('/', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 });
-
 router.post('/', async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await prisma.users.create({
             data: {
-                name,
-                email,
-                password: hashedPassword,
+                userName:name,
+                userEmail:email,
+                userPassword: hashedPassword,
             },
         });
 

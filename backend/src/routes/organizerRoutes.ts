@@ -8,12 +8,11 @@ router.post('/', async (req: Request, res: Response) => {
     try {
         const users = await prisma.tournaments.create({
             data:{
-                name: name,
+                tournamentName: name,
                 teamsName:teams,
-                organizerName: organizerName,
                 organizer: {
                     connect: {
-                        id: organizerId
+                        userId: organizerId
                     }
                 }
             }

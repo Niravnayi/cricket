@@ -10,9 +10,9 @@ router.post('/', async (req: Request, res: Response) => {
         console.log(tournamentExists)
         const team = await prisma.teams.create({
             data: {
-                tournamentName: tournamentExists ? tournamentExists.name : 'Unknown Tournament',
-                name: name,
-                players: players,
+                tournamentName: tournamentExists ? tournamentExists.tournamentName : 'Unknown Tournament',
+                teamName: name,
+                playersName: players,
                 tournament: {
                     connect: {
                         tournamentId: tournamentId,
