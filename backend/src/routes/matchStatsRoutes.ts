@@ -90,8 +90,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
 // Update match stats by matchId
 router.put('/:matchId', async (req: Request, res: Response) => {
+
     const { matchId } = req.params;
     const { firstTeamStats, firstTeamId, secondTeamStats, secondTeamId } = req.body;
+    console.log(firstTeamStats, firstTeamId, secondTeamStats, secondTeamId,matchId)
     try {
         const firstTeam = await prisma.teams.findUnique({
             where: { teamId: firstTeamId },
@@ -130,7 +132,6 @@ router.put('/:matchId', async (req: Request, res: Response) => {
                 overs: player.overs,
             })),
         ];
-
         const { count } = await prisma.matchStats.updateMany({ where: { matchId: Number(matchId) }, data: matchStatsData });
 
         if (count === 0) {

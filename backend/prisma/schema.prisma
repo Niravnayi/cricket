@@ -70,6 +70,8 @@ model matches {
   live Boolean
   venue String
   dateTime DateTime
+  result String
+  isCompleted Boolean
 }
 
 model matchStats {
