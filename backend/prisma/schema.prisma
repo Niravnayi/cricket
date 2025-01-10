@@ -45,7 +45,6 @@ model teams {
   tournament     tournaments @relation(fields: [tournamentId], references: [tournamentId])
   tournamentId   Int
   playersName    String[]
-  matches        matches[]
 
   @@unique([teamId, teamName])
 }
@@ -54,24 +53,34 @@ model player {
   playerId         Int       @id @default(autoincrement())
   playerName String
   age        Int
-  matches    matches[]
 
   @@unique([playerId, playerName])
 }
 
 model matches {
-  matchId             Int         @id @default(autoincrement())
+  matchId            Int          @id @default(autoincrement())
   tournamentName String?
-  tournament     tournaments @relation(fields: [tournamentId], references: [tournamentId])
-  tournamentId   Int
-  players        player     @relation(fields: [playerId, playerName], references: [playerId, playerName])
-  playerId       Int
-  playerName     String
-  team           teams       @relation(fields: [teamId, teamName], references: [teamId, teamName])
-  teamId         Int
-  teamName       String
-  Runs           Int
-  Wickets        Int
-  Balls          Int
-  Overs          String
+  tournament    tournaments  @relation(fields: [tournamentId], references: [tournamentId])
+  tournamentId  Int
+  firstTeamId       Int
+  secondTeamId       Int
+  firstTeamName     String
+  secondTeamName     String
+  matchStats    matchStats[] 
+  live Boolean
+  venue String
+  dateTime DateTime
+}
+
+model matchStats {
+  matchStatsId        Int      @id @default(autoincrement())  
+  match     matches  @relation(fields: [matchId], references: [matchId]) 
+  matchId   Int      
+  playerName String
+  teamId    Int 
+  teamName  String
+  runs      Int      
+  wickets   Int      
+  balls     Int      
+  overs     String   
 }
