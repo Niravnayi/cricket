@@ -3,22 +3,18 @@ import prisma from '../../prisma/index'
 
 const router = express.Router();
 
-router.get('/', async (req: Request, res: Response)=>{
-    const {id} = req.body
-    try{
-        const teamData = await prisma.teams.findUnique({
-            where:{
-                id: id
-            }
-        })
-        res.status(201).json({ teamData })
+// Get all teams
+router.get('/', async (req: Request, res: Response) => {
+    try {
+        const teams = await prisma.teams.findMany();
+        res.status(200).json(teams);
+    } catch (err) {
+        console.error('Error fetching teams:', err);
+        res.status(500).json({ error: 'Failed to fetch teams' });
     }
-    catch(error){
-        console.error(error)
-        res.status(500).json({message:'cannot fetch team'})
-    }
-})
+});
 
+// Create a new team
 router.post('/', async (req: Request, res: Response) => {
     const { teamName, tournamentId, playersName } = req.body;
 
@@ -58,7 +54,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
-
+// Update a team
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { teamName, playersName } = req.body;
@@ -77,6 +73,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
+// Delete a team
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {

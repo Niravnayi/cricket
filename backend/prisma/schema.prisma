@@ -32,7 +32,6 @@ model tournaments {
   tournamentId   Int       @id @default(autoincrement())
   tournamentName String
   teamsName      String[]
-  organizerName  String
   organizer      organizers     @relation(fields: [organizerId], references: [id])
   organizerId    Int
   teams          teams[]
