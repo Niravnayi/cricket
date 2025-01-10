@@ -66,7 +66,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const { teamName, playersName }: Team = req.body;
     try {
         const team = await prisma.teams.update({
-            where: { id: Number(id) },
+            where: { teamId: Number(id) },
             data: {
                 teamName: teamName,
                 playersName,
@@ -84,7 +84,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
         const team = await prisma.teams.delete({
-            where: { id: Number(id) },
+            where: { teamId: Number(id) },
         });
         res.status(200).json(team);
     } catch (err) {
