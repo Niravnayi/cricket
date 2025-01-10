@@ -16,9 +16,9 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Create a new tournament
 router.post('/', async (req: Request, res: Response) => {
-    const { tournamentName, organizerId, organizerName, teams } = req.body;
+    const { tournamentName, organizerId, teamsName } = req.body;
 
-    if (!tournamentName || !organizerId || !organizerName) {
+    if (!tournamentName || !organizerId || !teamsName) {
         res.status(400).json({ error: 'Missing required fields: tournamentName, organizerId, or organizerName' });
         return;
     }
@@ -37,8 +37,7 @@ router.post('/', async (req: Request, res: Response) => {
         const tournament = await prisma.tournaments.create({
             data: {
                 tournamentName,
-                organizerName,
-                teamsName: teams,
+                teamsName: teamsName,
                 organizer: {
                     connect: {
                         id: organizerId,
