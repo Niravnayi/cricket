@@ -5,6 +5,10 @@ interface Match {
     tournamentId: number;
     firstTeamId: number;
     secondTeamId: number;
+    venue: string;
+    live: boolean;
+    result: string;
+    isCompleted: boolean
 }
 
 const router = express.Router();
@@ -22,7 +26,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Create a new match
 router.post('/', async (req: Request, res: Response): Promise<void> => {
-    const { tournamentId, firstTeamId, secondTeamId }: Match = req.body;
+    const { tournamentId, firstTeamId, secondTeamId, venue, live, result }: Match = req.body;
     
     try {
         const tournamentExists = await prisma.tournaments.findUnique({
@@ -56,6 +60,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
                 firstTeamName: firstTeam.teamName,
                 secondTeamId: secondTeamId,
                 secondTeamName: secondTeam.teamName,
+                dateTime: new Date(),
+                venue: venue,
+                live: live,
+                isCompleted: false,
+                result: result || ''
             },
         });
      
@@ -72,7 +81,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 //Update a match
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { tournamentId, firstTeamId, secondTeamId }: Match = req.body;
+    const { tournamentId, firstTeamId, secondTeamId, live, venue, isCompleted, result }: Match = req.body;
     try {
         const match = await prisma.matches.update({
             where: { matchId: Number(id) },
@@ -80,6 +89,11 @@ router.put('/:id', async (req: Request, res: Response) => {
                 tournamentId: tournamentId,
                 firstTeamId: firstTeamId,
                 secondTeamId: secondTeamId,
+                live: live,
+                venue: venue,
+                isCompleted: isCompleted,
+                result: result
+
             },    
         });
         res.status(200).json(match);
