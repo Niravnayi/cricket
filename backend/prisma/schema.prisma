@@ -14,14 +14,14 @@ datasource db {
 }
 
 model users {
-  id         Int           @id @default(autoincrement())
+  userId         Int           @id @default(autoincrement())
   userEmail      String        @unique
   userName   String?
   userPassword   String?
 }
 
 model organizers {
-  id         Int           @id @default(autoincrement())
+  organizerId         Int           @id @default(autoincrement())
   organizerEmail      String        @unique
   organizerName   String?
   organizerPassword   String?
@@ -32,14 +32,14 @@ model tournaments {
   tournamentId   Int       @id @default(autoincrement())
   tournamentName String
   teamsName      String[]
-  organizer      organizers     @relation(fields: [organizerId], references: [id])
+  organizer      organizers     @relation(fields: [organizerId], references: [organizerId])
   organizerId    Int
   teams          teams[]
   matches        matches[]
 }
 
 model teams {
-  id             Int         @id @default(autoincrement())
+  teamId             Int         @id @default(autoincrement())
   teamName       String
   tournamentName String?
   tournament     tournaments @relation(fields: [tournamentId], references: [tournamentId])
@@ -47,27 +47,27 @@ model teams {
   playersName    String[]
   matches        matches[]
 
-  @@unique([id, teamName])
+  @@unique([teamId, teamName])
 }
 
 model player {
-  id         Int       @id @default(autoincrement())
+  playerId         Int       @id @default(autoincrement())
   playerName String
   age        Int
   matches    matches[]
 
-  @@unique([id, playerName])
+  @@unique([playerId, playerName])
 }
 
 model matches {
-  id             Int         @id @default(autoincrement())
+  matchId             Int         @id @default(autoincrement())
   tournamentName String?
   tournament     tournaments @relation(fields: [tournamentId], references: [tournamentId])
   tournamentId   Int
-  players        player     @relation(fields: [playerId, playerName], references: [id, playerName])
+  players        player     @relation(fields: [playerId, playerName], references: [playerId, playerName])
   playerId       Int
   playerName     String
-  team           teams       @relation(fields: [teamId, teamName], references: [id, teamName])
+  team           teams       @relation(fields: [teamId, teamName], references: [teamId, teamName])
   teamId         Int
   teamName       String
   Runs           Int

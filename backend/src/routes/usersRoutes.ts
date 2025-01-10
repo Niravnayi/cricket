@@ -61,12 +61,11 @@ router.put('/:id', async (req: Request, res: Response) => {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }
-
-    
+  
     try {
         const hashedPassword = await bcrypt.hash(userPassword, 10);
         const user = await prisma.users.update({
-            where: { id: Number(id) },
+            where: { userId: Number(id) },
             data: {
                 userName,
                 userEmail,
@@ -101,7 +100,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 
     try {
         const user = await prisma.users.delete({
-            where: { id: Number(id) },
+            where: { userId: Number(id) },
         });
         res.status(200).json(user);
     } catch (err) {
