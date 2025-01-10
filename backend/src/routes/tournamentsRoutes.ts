@@ -33,7 +33,7 @@ router.post('/', async (req: Request, res: Response) => {
     try {
        
         const organizerExists = await prisma.organizers.findUnique({
-            where: { id: organizerId },
+            where: { organizerId: organizerId },
         });
 
         if (!organizerExists) {
@@ -47,7 +47,7 @@ router.post('/', async (req: Request, res: Response) => {
                 teamsName: teamsName,
                 organizer: {
                     connect: {
-                        id: organizerId,
+                         organizerId,
                     },
                 },
             },
@@ -82,7 +82,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
         if (organizerId) {
             const organizerExists = await prisma.organizers.findUnique({
-                where: { id: organizerId },
+                where: { organizerId: organizerId },
             });
 
             if (!organizerExists) {
@@ -98,7 +98,7 @@ router.put('/:id', async (req: Request, res: Response) => {
                 teamsName,
                 organizer: {
                     connect: {
-                        id: organizerId,
+                         organizerId,
                     },
                 }
             },
