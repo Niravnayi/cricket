@@ -1,5 +1,12 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index'
+import bcrypt from 'bcrypt';
+
+interface Organizer {
+    organizerName: string;
+    organizerEmail: string;
+    organizerPassword: string;
+}
 
 const router = express.Router();
 
@@ -16,19 +23,82 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Create a new organizer
 router.post('/', async (req: Request, res: Response) => {
-    const { organizerName, organizerEmail, organizerPassword } = req.body
+    const { organizerName, organizerEmail, organizerPassword }: Organizer = req.body
+
+    if(!organizerName || !organizerEmail || !organizerPassword) {
+        res.status(400).json({ error: 'Missing required fields' });
+        return;
+    }
+
     try {
+        const hashedPassword = await bcrypt.hash(organizerPassword, 10);
         const organizer = await prisma.organizers.create({
             data: {
                  organizerName,
                  organizerEmail,
-                 organizerPassword
+                 organizerPassword: hashedPassword
             }
         });
         res.status(201).json(organizer);
     } catch (err) {
         console.error('Error fetching users:', err);
         res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+//Update an organizer
+router.put('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { organizerName, organizerEmail, organizerPassword }: Organizer = req.body;
+
+    if (isNaN(Number(id))) {
+        res.status(400).json({ error: 'Invalid organizer ID' });
+        return;
+    }
+
+    if(!organizerName || !organizerEmail || !organizerPassword) {
+        res.status(400).json({ error: 'Missing required fields' });
+        return;
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(organizerPassword, 10);
+        const updatedOrganizer = await prisma.organizers.update({
+            where: {
+                id: Number(id),
+            },
+            data: {
+                organizerName,
+                organizerEmail,
+                organizerPassword: hashedPassword,
+            },
+        });
+        res.status(200).json(updatedOrganizer);
+    } catch (err) {
+        console.error('Error updating organizer:', err);
+        res.status(500).json({ error: 'Failed to update organizer' });
+    }
+});
+
+// Delete an organizer
+router.delete('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (isNaN(Number(id))) {
+        res.status(400).json({ error: 'Invalid organizer ID' });
+        return;
+    }
+
+    try {
+        const deletedOrganizer = await prisma.organizers.delete({
+            where: {
+                id: Number(id),
+            },
+        });
+        res.status(200).json(deletedOrganizer);
+    } catch (err) {
+        console.error('Error deleting organizer:', err);
+        res.status(500).json({ error: 'Failed to delete organizer' });
     }
 });
 

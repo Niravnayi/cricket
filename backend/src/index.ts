@@ -1,8 +1,8 @@
-import express from "express";
-import usersRoutes from "./routes/usersRoutes";
-import organizersRoutes from "./routes/organizersRoutes";
-import teamsRoutes from "./routes/teamsRoutes";
-import tournamentsRoutes from "./routes/tournamentsRoutes";
+import express from 'express';
+import usersRoutes from './routes/usersRoutes'
+import organizersRoutes from './routes/organizersRoutes'
+import teamsRoutes from './routes/teamsRoutes'
+import tournamentsRoutes from './routes/tournamentsRoutes'
 
 const app = express();
 const port = 4000;

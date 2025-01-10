@@ -1,6 +1,12 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index'
 
+interface Team {
+    teamName: string;
+    tournamentId: number;
+    playersName: string[];
+}
+
 const router = express.Router();
 
 // Get all teams
@@ -16,7 +22,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Create a new team
 router.post('/', async (req: Request, res: Response) => {
-    const { teamName, tournamentId, playersName } = req.body;
+    const { teamName, tournamentId, playersName }: Team = req.body;
 
     try {
  
@@ -57,7 +63,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a team
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { teamName, playersName } = req.body;
+    const { teamName, playersName }: Team = req.body;
     try {
         const team = await prisma.teams.update({
             where: { id: Number(id) },
