@@ -111,4 +111,24 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 });
 
+//Get a Specific Tournament
+router.get('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (isNaN(Number(id))) {
+        res.status(400).json({ error: 'Invalid tournament ID' });
+        return;
+    }
+
+    try {
+        const tournament = await prisma.tournaments.findUnique({
+            where: { tournamentId: Number(id) },
+        });
+        res.json(tournament);
+    } catch (err) {
+        console.error('Error fetching tournament:', err);
+        res.status(500).json({ error: 'Failed to fetch tournament' });
+    }
+})
+
 export default router;
