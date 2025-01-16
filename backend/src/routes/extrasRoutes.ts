@@ -1,0 +1,115 @@
+import express, { Request, Response } from 'express';
+import prisma from '../../prisma';
+
+interface Extras {
+    scorecardId: number;
+    teamName: string;
+    byes: number;
+    legByes: number;
+    wides: number;
+    noBalls: number;
+    totalExtras: number;
+}
+const router = express.Router();
+
+// Get all extras
+router.get('/', async (req: Request, res: Response) => {
+    try {
+        const extras = await prisma.extras.findMany();
+        res.status(200).json(extras);
+    } catch (error) {
+        console.error('Error fetching extras:', error);
+        res.status(500).json({ error: 'Failed to fetch extras' });
+    }
+});
+
+// Get extras by scorecardId
+router.get('/scorecard/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        const extras = await prisma.extras.findMany({
+            where: { scorecardId: Number(id) },
+        });
+
+        if (extras.length === 0) {
+            res.status(404).json({ error: 'No extras found for the specified scorecardId' });
+        } else {
+            res.status(200).json(extras);
+        }
+    } catch (error) {
+        console.error('Error fetching extras by scorecardId:', error);
+        res.status(500).json({ error: 'Failed to fetch extras' });
+    }
+});
+
+
+// Create new extras
+router.post('/', async (req: Request, res: Response) => {
+    const { scorecardId, teamName, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
+
+    if (!scorecardId || !teamName || byes == null || legByes == null || wides == null || noBalls == null || totalExtras == null) {
+        res.status(400).json({ error: 'Missing required fields' });
+        return 
+    }
+
+    try {
+        const extras = await prisma.extras.create({
+            data: {
+                scorecardId,
+                teamName,
+                byes,
+                legByes,
+                wides,
+                noBalls,
+                totalExtras,
+            },
+        });
+        res.status(201).json(extras);
+    } catch (error) {
+        console.error('Error creating extras:', error);
+        res.status(500).json({ error: 'Failed to create extras' });
+    }
+});
+
+// Update extras
+router.put('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { scorecardId, teamName, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
+
+    try {
+        const extras = await prisma.extras.update({
+            where: { extrasId: Number(id) },
+            data: {
+                scorecardId,
+                teamName,
+                byes,
+                legByes,
+                wides,
+                noBalls,
+                totalExtras,
+            },
+        });
+        res.status(200).json(extras);
+    } catch (error) {
+        console.error('Error updating extras:', error);
+        res.status(500).json({ error: 'Failed to update extras' });
+    }
+});
+
+// Delete extras
+router.delete('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        const extras = await prisma.extras.delete({
+            where: { extrasId: Number(id) },
+        });
+        res.status(200).json(extras);
+    } catch (error) {
+        console.error('Error deleting extras:', error);
+        res.status(500).json({ error: 'Failed to delete extras' });
+    }
+});
+
+export default router;
