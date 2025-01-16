@@ -14,18 +14,18 @@ datasource db {
 }
 
 model users {
-  userId         Int           @id @default(autoincrement())
-  userEmail      String        @unique
-  userName   String?
-  userPassword   String?
+  userId        Int           @id @default(autoincrement())
+  userEmail     String        @unique
+  userName      String?
+  userPassword  String?
 }
 
 model organizers {
   organizerId         Int           @id @default(autoincrement())
   organizerEmail      String        @unique
-  organizerName   String?
+  organizerName       String?
   organizerPassword   String?
-  tournaments tournaments[]
+  tournaments         tournaments[]
 }
 
 model tournaments {
@@ -38,51 +38,103 @@ model tournaments {
   matches        matches[]
 }
 
-model teams {
-  teamId             Int         @id @default(autoincrement())
-  teamName       String
-  tournamentName String?
-  tournament     tournaments @relation(fields: [tournamentId], references: [tournamentId])
-  tournamentId   Int
-  playersName    String[]
-
-  @@unique([teamId, teamName])
-}
-
-model player {
-  playerId         Int       @id @default(autoincrement())
+model players {
+  playerId   Int     @id @default(autoincrement())
   playerName String
-  age        Int
+  playerAge  Int
+  teams      teamPlayer[]
 
   @@unique([playerId, playerName])
+  @@index([playerName])
+}
+
+model teams {
+  teamId       Int           @id @default(autoincrement())
+  teamName     String
+  tournament   tournaments   @relation(fields: [tournamentId], references: [tournamentId])
+  tournamentId Int
+  players      teamPlayer[]
+
+  @@unique([teamId, teamName])
+  @@index([teamName])
+}
+
+model teamPlayer {
+  id       Int     @id @default(autoincrement())
+  team     teams   @relation(fields: [teamId], references: [teamId])
+  teamId   Int
+  player   players @relation(fields: [playerId], references: [playerId])
+  playerId Int
+
+  @@unique([teamId, playerId]) 
 }
 
 model matches {
-  matchId            Int          @id @default(autoincrement())
-  tournamentName String?
-  tournament    tournaments  @relation(fields: [tournamentId], references: [tournamentId])
-  tournamentId  Int
-  firstTeamId       Int
+  matchId            Int           @id @default(autoincrement())
+  tournament         tournaments   @relation(fields: [tournamentId], references: [tournamentId])
+  tournamentId       Int
+  firstTeamId        Int
   secondTeamId       Int
-  firstTeamName     String
+  firstTeamName      String
   secondTeamName     String
-  matchStats    matchStats[] 
-  live Boolean
-  venue String
-  dateTime DateTime
-  result String
-  isCompleted Boolean
+  venue              String
+  dateTime           DateTime
+  result             String
+  isLive             Boolean
+  isCompleted        Boolean
+  scorecard          scorecard?   @relation("MatchScorecard") 
 }
 
-model matchStats {
-  matchStatsId        Int      @id @default(autoincrement())  
-  match     matches  @relation(fields: [matchId], references: [matchId]) 
-  matchId   Int      
-  playerName String
-  teamId    Int 
-  teamName  String
-  runs      Int      
-  wickets   Int      
-  balls     Int      
-  overs     String   
+model scorecard {
+  scorecardId      Int           @id @default(autoincrement())
+  matchId          Int           @unique
+  match            matches       @relation("MatchScorecard", fields: [matchId], references: [matchId]) 
+  teamAScore       Int
+  teamBScore       Int
+  teamAWickets     Int
+  teamBWickets     Int
+  teamAOvers       Float
+  teamBOvers       Float
+  extras           extras[]
+  battingStats     battingStats[]
+  bowlingStats     bowlingStats[]
+}
+
+model extras {
+  extrasId         Int           @id @default(autoincrement())
+  scorecardId      Int
+  scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
+  teamName         String
+  byes             Int
+  legByes          Int
+  wides            Int
+  noBalls          Int
+  totalExtras      Int
+}
+
+model battingStats {
+  battingStatsId   Int           @id @default(autoincrement())
+  scorecardId      Int
+  scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
+  playerName       String
+  teamName         String
+  runs             Int
+  balls            Int
+  fours            Int
+  sixes            Int
+  strikeRate       Float
+  dismissal        String
+}
+
+model bowlingStats {
+  bowlingStatsId   Int           @id @default(autoincrement())
+  scorecardId      Int
+  scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
+  playerName       String
+  teamName         String
+  overs            Float
+  maidens          Int
+  runsConceded     Int
+  wickets          Int
+  economyRate      Float
 }

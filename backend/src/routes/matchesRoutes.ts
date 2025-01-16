@@ -4,102 +4,95 @@ import prisma from '../../prisma';
 interface Match {
     tournamentId: number;
     firstTeamId: number;
+    firstTeamName: string;
     secondTeamId: number;
+    secondTeamName: string;
+    dateTime: Date;
     venue: string;
-    live: boolean;
+    isLive: boolean;
     result: string;
     isCompleted: boolean
 }
 
 const router = express.Router();
 
-//Get all matches
+// Get all matches
 router.get('/', async (req: Request, res: Response) => {
     try {
-        const matches = await prisma.matches.findMany();
+        const matches = await prisma.matches.findMany({
+            include: { scorecard: true },
+        });
         res.json(matches);
-    } catch (err) {
-        console.error('Error fetching matches:', err);
-        res.status(500).json({ error: 'Failed to fetch matches' });
-    }
-})
-
-// Create a new match
-router.post('/', async (req: Request, res: Response): Promise<void> => {
-    const { tournamentId, firstTeamId, secondTeamId, venue, live, result }: Match = req.body;
-    
-    try {
-        const tournamentExists = await prisma.tournaments.findUnique({
-            where: { tournamentId: tournamentId },
-        });
-
-        if (!tournamentExists) {
-            res.status(404).json({ error: 'Tournament does not exist' });
-            return;
-        }
-
-        const firstTeam = await prisma.teams.findUnique({
-            where: { teamId: firstTeamId },
-            select: { teamName: true },
-        });
-        
-        const secondTeam = await prisma.teams.findUnique({
-            where: { teamId: secondTeamId },
-            select: { teamName: true },
-        });
-
-        if (!firstTeam || !secondTeam) {
-            res.status(404).json({ error: 'One or both teams do not exist' });
-            return; 
-        }
-        const newMatch = await prisma.matches.create({
-            data: {
-                tournamentName: tournamentExists.tournamentName,
-                tournamentId: tournamentExists.tournamentId,
-                firstTeamId: firstTeamId,
-                firstTeamName: firstTeam.teamName,
-                secondTeamId: secondTeamId,
-                secondTeamName: secondTeam.teamName,
-                dateTime: new Date(),
-                venue: venue,
-                live: live,
-                isCompleted: false,
-                result: result || ''
-            },
-        });
-     
-        res.status(201).json({
-            message: 'Match and player stats added successfully',
-            match: newMatch,
-        });
-    } catch (err) {
-        console.error('Error creating match and player stats:', err);
-        res.status(500).json({ error: 'Failed to create match and player stats' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching matches' });
     }
 });
 
-//Update a match
+// Get a specific match
+router.get('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const match = await prisma.matches.findUnique({
+            where: { 
+                matchId: parseInt(id) 
+            },
+            include: { 
+                scorecard: true 
+            },
+        });
+        res.json(match);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching match' });
+    }
+});
+
+// Create a new match
+router.post('/', async (req: Request, res: Response) => {
+    const { tournamentId, firstTeamId, secondTeamId, firstTeamName, secondTeamName, venue, dateTime }: Match = req.body;
+    
+    try {
+        const newMatch = await prisma.matches.create({
+            data: {
+                tournamentId,
+                firstTeamId,
+                secondTeamId,
+                firstTeamName,
+                secondTeamName,
+                venue,
+                dateTime: new Date(dateTime),
+                result: 'Pending',
+                isLive: false,
+                isCompleted: false,
+            },
+        });
+        res.status(201).json(newMatch);
+    } catch (error) {
+        res.status(500).json({ error: 'Error creating match' });
+    }
+});
+
+// Update a match
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { tournamentId, firstTeamId, secondTeamId, live, venue, isCompleted, result }: Match = req.body;
+    const { tournamentId, firstTeamId, secondTeamId, firstTeamName, secondTeamName, venue, dateTime }: Match = req.body;
     try {
-        const match = await prisma.matches.update({
-            where: { matchId: Number(id) },
+        const updatedMatch = await prisma.matches.update({
+            where: { 
+                matchId: parseInt(id) 
+            },
             data: {
-                tournamentId: tournamentId,
-                firstTeamId: firstTeamId,
-                secondTeamId: secondTeamId,
-                live: live,
-                venue: venue,
-                isCompleted: isCompleted,
-                result: result
-
-            },    
+                tournamentId,
+                firstTeamId,
+                secondTeamId,
+                firstTeamName,
+                secondTeamName,
+                venue,
+                dateTime: new Date(dateTime),
+            },
         });
-        res.status(200).json(match);
-    } catch (err) {
-        console.error('Error updating match:', err);
-        res.status(500).json({ error: 'Failed to update match' });
+        res.json(updatedMatch);
+    } catch (error) {
+        res.status(500).json({ error: 'Error updating match' });
     }
 });
 
@@ -107,33 +100,14 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const match = await prisma.matches.delete({
-            where: { matchId: Number(id) },
+        await prisma.matches.delete({
+            where: { 
+                matchId: parseInt(id) 
+            },
         });
-        res.status(200).json(match);
-    } catch (err) {
-        console.error('Error deleting match:', err);
-        res.status(500).json({ error: 'Failed to delete match' });
-    }
-});
-
-// Get all matches for a specific tournament
-router.get('/tournaments/:tournamentId', async (req: Request, res: Response) => {
-    const { tournamentId } = req.params;
-
-    if (isNaN(Number(tournamentId))) {
-        res.status(400).json({ error: 'Invalid tournament ID' });
-        return;
-    }
-
-    try {   
-        const matches = await prisma.matches.findMany({
-            where: { tournamentId: Number(tournamentId) },
-        });
-        res.json(matches);
-    } catch (err) {
-        console.error('Error fetching matches for tournament:', err);
-        res.status(500).json({ error: 'Failed to fetch matches for tournament' });
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: 'Error deleting match' });
     }
 });
 
