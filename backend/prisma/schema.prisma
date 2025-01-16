@@ -31,11 +31,27 @@ model organizers {
 model tournaments {
   tournamentId   Int       @id @default(autoincrement())
   tournamentName String
-  teamsName      String[]
   organizer      organizers     @relation(fields: [organizerId], references: [organizerId])
   organizerId    Int
-  teams          teams[]
+  teams          tournamentTeams[] 
   matches        matches[]
+}
+
+model tournamentTeams {
+  id            Int          @id @default(autoincrement())
+  tournament    tournaments  @relation(fields: [tournamentId], references: [tournamentId])
+  tournamentId  Int
+  team          teams        @relation(fields: [teamId], references: [teamId])
+  teamId        Int
+
+  @@unique([tournamentId, teamId])
+}
+
+model teams {
+  teamId       Int           @id @default(autoincrement())
+  teamName     String
+  tournamentTeams tournamentTeams[]
+  players      teamPlayer[]
 }
 
 model players {
@@ -48,23 +64,13 @@ model players {
   @@index([playerName])
 }
 
-model teams {
-  teamId       Int           @id @default(autoincrement())
-  teamName     String
-  tournament   tournaments   @relation(fields: [tournamentId], references: [tournamentId])
-  tournamentId Int
-  players      teamPlayer[]
-
-  @@unique([teamId, teamName])
-  @@index([teamName])
-}
-
 model teamPlayer {
   id       Int     @id @default(autoincrement())
   team     teams   @relation(fields: [teamId], references: [teamId])
   teamId   Int
   player   players @relation(fields: [playerId], references: [playerId])
   playerId Int
+  playerName String
 
   @@unique([teamId, playerId]) 
 }
@@ -138,3 +144,4 @@ model bowlingStats {
   wickets          Int
   economyRate      Float
 }
+

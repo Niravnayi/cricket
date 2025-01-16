@@ -22,15 +22,15 @@ router.get('/team/:teamId', async (req: Request, res: Response) => {
 
 // Add players to a team
 router.post('/', async (req: Request, res: Response) => {
-    const { teamId, playerIds } = req.body;
+    const { teamId, playerIds, playerName } = req.body;
 
-    if (!teamId || !Array.isArray(playerIds)) {
+    if (!teamId || !Array.isArray(playerIds || !playerName)) {
         res.status(400).json({ error: 'Missing teamId or invalid playerIds' });
         return 
     }
 
     try {
-        const entries = playerIds.map((playerId: number) => ({ teamId, playerId }));
+        const entries = playerIds.map((playerId: number) => ({ teamId, playerId, playerName }));
         const teamPlayers = await prisma.teamPlayer.createMany({ data: entries });
 
         res.status(201).json({ message: 'Players added to team successfully', teamPlayers });
@@ -42,13 +42,13 @@ router.post('/', async (req: Request, res: Response) => {
 
 // Update a player in a team
 router.put('/:teamId/:playerId', async (req: Request, res: Response) => {
-    const { teamId, playerId } = req.params;
-    const { teamId: updatedTeamId, playerId: updatedPlayerId } = req.body;
+    const { teamId, playerId, playerName } = req.params;
+    const { teamId: updatedTeamId, playerId: updatedPlayerId, playerName: updatedPlayerName } = req.body;
 
     try {
         const teamPlayer = await prisma.teamPlayer.update({
             where: { teamId_playerId: { teamId: Number(teamId), playerId: Number(playerId) } },
-            data: { teamId: updatedTeamId, playerId: updatedPlayerId },
+            data: { teamId: updatedTeamId, playerId: updatedPlayerId, playerName: updatedPlayerName },
         });
 
         res.status(200).json({ message: 'Player updated in team successfully', teamPlayer });

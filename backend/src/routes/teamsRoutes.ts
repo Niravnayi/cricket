@@ -13,7 +13,10 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const teams = await prisma.teams.findMany({
-            include: { players: { include: { player: true } } },
+            include: {
+                players: { include: { player: true } },
+                tournamentTeams: { include: { tournament: true } }, 
+            },
         });
         res.status(200).json(teams);
     } catch (error) {
@@ -22,42 +25,202 @@ router.get('/', async (req: Request, res: Response) => {
     }
 });
 
+
 // Create a new team
 router.post('/', async (req: Request, res: Response) => {
     const { teamName, tournamentId, playerIds }: Team = req.body;
 
-    if (!teamName || !tournamentId || !Array.isArray(playerIds)) {
+    if (!teamName || !tournamentId || !Array.isArray(playerIds) || playerIds.length === 0) {
         res.status(400).json({ error: 'Missing required fields or invalid playerIds' });
         return;
     }
 
     try {
+        //check whether team name already exists
+        const existingTeam = await prisma.teams.findFirst({
+            where: {
+                teamName,
+            },
+        })
+
+        if (existingTeam) {
+            res.status(400).json({ error: 'Team name already exists' });
+            return;
+        }
+
+        // Fetch existing players from the database
+        const existingPlayers = await prisma.players.findMany({
+            where: {
+                playerId: { in: playerIds },
+            },
+        });
+
+        if (existingPlayers.length !== playerIds.length) {
+            const missingPlayerIds = playerIds.filter(
+                (id) => !existingPlayers.some((player) => player.playerId === id)
+            );
+            res.status(400).json({
+                error: `Some players were not found: ${missingPlayerIds.join(', ')}`,
+            });
+            return;
+        }
+
+        // Create the team
         const team = await prisma.teams.create({
             data: {
                 teamName,
-                tournamentId,
                 players: {
-                    create: playerIds.map((playerId: number) => ({ playerId })),
+                    create: existingPlayers.map((player) => ({
+                        playerId: player.playerId,
+                        playerName: player.playerName
+                    })),
                 },
             },
-            include: { players: true },
         });
 
-        res.status(201).json(team);
+        // Create the tournament-team relationship
+        await prisma.tournamentTeams.create({
+            data: {
+                tournamentId,
+                teamId: team.teamId,
+            },
+        });
+
+        res.status(201).json({ message: 'Team created successfully', team });
     } catch (error) {
         console.error('Error creating team:', error);
         res.status(500).json({ error: 'Failed to create team' });
     }
 });
 
+
+// Update a team
+router.put('/:teamId', async (req: Request, res: Response) => {
+    const { teamId } = req.params;
+    const { teamName, tournamentId, playerIds }: Team = req.body;
+
+    if (!teamName && !tournamentId && !Array.isArray(playerIds)) {
+        res.status(400).json({ error: 'No fields to update' });
+        return;
+    }
+
+    try {
+        // Find the team by ID
+        const existingTeam = await prisma.teams.findUnique({
+            where: {
+                teamId: parseInt(teamId),
+            },
+        });
+
+        if (!existingTeam) {
+            res.status(404).json({ error: 'Team not found' });
+            return;
+        }
+
+        // Check if the new team name already exists (if the team name is being updated)
+        if (teamName && teamName !== existingTeam.teamName) {
+            const teamWithNewName = await prisma.teams.findFirst({
+                where: {
+                    teamName,
+                },
+            });
+            if (teamWithNewName) {
+                res.status(400).json({ error: 'Team name already exists' });
+                return;
+            }
+        }
+
+        // Fetch existing players from the database
+        if (playerIds && Array.isArray(playerIds)) {
+            const existingPlayers = await prisma.players.findMany({
+                where: {
+                    playerId: { in: playerIds },
+                },
+            });
+
+            if (existingPlayers.length !== playerIds.length) {
+                const missingPlayerIds = playerIds.filter(
+                    (id) => !existingPlayers.some((player) => player.playerId === id)
+                );
+                res.status(400).json({
+                    error: `Some players were not found: ${missingPlayerIds.join(', ')}`,
+                });
+                return;
+            }
+
+            // Update the players in the team (delete existing players and add new ones)
+            await prisma.teamPlayer.deleteMany({
+                where: {
+                    teamId: parseInt(teamId),
+                },
+            });
+
+            // Add the new players
+            await prisma.teamPlayer.createMany({
+                data: existingPlayers.map((player) => ({
+                    teamId: parseInt(teamId),
+                    playerId: player.playerId,
+                    playerName: player.playerName, // Store player name
+                })),
+            });
+        }
+
+        // Update the team name and tournament if provided
+        const updatedTeam = await prisma.teams.update({
+            where: { teamId: parseInt(teamId) },
+            data: {
+                teamName: teamName || existingTeam.teamName,
+            },
+        });
+
+        // Update the tournament-team relationship if a tournamentId is provided
+        if (tournamentId) {
+            // Check if the tournament exists
+            const tournament = await prisma.tournaments.findUnique({
+                where: { tournamentId },
+            });
+
+            if (!tournament) {
+                res.status(400).json({ error: 'Tournament not found' });
+                return;
+            }
+
+            // Update the tournament-team relationship
+            await prisma.tournamentTeams.upsert({
+                where: {
+                    tournamentId_teamId: {
+                        tournamentId,
+                        teamId: parseInt(teamId),
+                    },
+                },
+                update: {
+                    tournamentId,
+                    teamId: parseInt(teamId),
+                },
+                create: {
+                    tournamentId,
+                    teamId: parseInt(teamId),
+                },
+            });
+        }
+
+        res.status(200).json({ message: 'Team updated successfully', team: updatedTeam });
+    } catch (error) {
+        console.error('Error updating team:', error);
+        res.status(500).json({ error: 'Failed to update team' });
+    }
+});
+
+
+
 // Add a player to a team
 router.post('/:teamId/players', async (req: Request, res: Response) => {
     const { teamId } = req.params;
-    const { playerId } = req.body;
+    const { playerId, playerName } = req.body;
 
     try {
         const teamPlayer = await prisma.teamPlayer.create({
-            data: { teamId: parseInt(teamId), playerId },
+            data: { teamId: parseInt(teamId), playerId, playerName },
         });
 
         res.status(201).json(teamPlayer);
