@@ -37,6 +37,9 @@ router.get('/:id', async (req: Request, res: Response) => {
                 teams: {
                     include: { team: true },
                 },
+                matches: {
+                    include: { scorecard: true },
+                },
             },
         });
 

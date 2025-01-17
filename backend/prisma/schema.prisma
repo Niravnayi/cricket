@@ -58,6 +58,8 @@ model players {
   playerId   Int     @id @default(autoincrement())
   playerName String
   playerAge  Int
+  isCaptain  Boolean @default(false)
+  playerRole playerRole
   teams      teamPlayer[]
 
   @@unique([playerId, playerName])
@@ -145,3 +147,8 @@ model bowlingStats {
   economyRate      Float
 }
 
+enum playerRole {
+  BATSMAN
+  BOWLER
+  ALLROUNDER
+}

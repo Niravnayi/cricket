@@ -39,18 +39,29 @@ router.get('/scorecard/:id', async (req: Request, res: Response) => {
 
 // Create new extras
 router.post('/', async (req: Request, res: Response) => {
-    const { scorecardId, teamName, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
+    const { scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
 
-    if (!scorecardId || !teamName || byes == null || legByes == null || wides == null || noBalls == null || totalExtras == null) {
+    if (!scorecardId || !teamId || byes == null || legByes == null || wides == null || noBalls == null || totalExtras == null) {
         res.status(400).json({ error: 'Missing required fields' });
         return 
     }
 
     try {
+        const team = await prisma.teams.findUnique({
+            where: {
+                teamId: teamId,
+            },
+        })
+
+        if (!team) {
+            res.status(404).json({ error: 'Player or Team not found' });
+            return;
+        }
+
         const extras = await prisma.extras.create({
             data: {
                 scorecardId,
-                teamName,
+                teamName: team.teamName,
                 byes,
                 legByes,
                 wides,
@@ -68,14 +79,25 @@ router.post('/', async (req: Request, res: Response) => {
 // Update extras
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { scorecardId, teamName, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
+    const { scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
 
     try {
+        const team = await prisma.teams.findUnique({
+            where: {
+                teamId: teamId,
+            },
+        })
+
+        if (!team) {
+            res.status(404).json({ error: 'Player or Team not found' });
+            return;
+        }
+
         const extras = await prisma.extras.update({
             where: { extrasId: Number(id) },
             data: {
                 scorecardId,
-                teamName,
+                teamName: team.teamName,
                 byes,
                 legByes,
                 wides,
