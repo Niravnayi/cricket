@@ -1,12 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index'
 import bcrypt from 'bcrypt';
-
-interface Organizer {
-    organizerName: string;
-    organizerEmail: string;
-    organizerPassword: string;
-}
+import { Organizer } from '../types/organizersRoute';
 
 const router = express.Router();
 

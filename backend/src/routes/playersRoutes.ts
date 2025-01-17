@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index';
+import { Player } from '../types/playersRoute';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Create a new player
 router.post('/', async (req: Request, res: Response) => {
-  const { playerName, playerAge } = req.body;
+  const { playerName, playerAge }: Player = req.body;
 
   if (!playerName || !playerAge) {
     res.status(400).json({ error: 'Missing required fields' });
@@ -38,7 +39,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a player
 router.put('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { playerName, playerAge } = req.body;
+  const { playerName, playerAge }: Player = req.body;
 
   if (!playerName || !playerAge) {
     res.status(400).json({ error: 'Missing required fields' });

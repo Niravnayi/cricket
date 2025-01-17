@@ -1,15 +1,8 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
+import { Extras } from '../types/extrasRoute'
 
-interface Extras {
-    scorecardId: number;
-    teamName: string;
-    byes: number;
-    legByes: number;
-    wides: number;
-    noBalls: number;
-    totalExtras: number;
-}
+
 const router = express.Router();
 
 // Get all extras
