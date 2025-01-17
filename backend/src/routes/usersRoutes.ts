@@ -1,12 +1,7 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../../prisma/index';
 import bcrypt from 'bcrypt';
-
-interface User {
-    userName: string;
-    userEmail: string;
-    userPassword: string;
-}
+import { User } from '../types/usersRoute';
 
 const router = Router();
 

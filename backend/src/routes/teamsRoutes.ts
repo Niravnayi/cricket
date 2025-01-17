@@ -212,43 +212,87 @@ router.put('/:teamId', async (req: Request, res: Response) => {
 });
 
 
-
-// Add a player to a team
-router.post('/:teamId/players', async (req: Request, res: Response) => {
+// Delete a team
+router.delete('/:teamId', async (req: Request, res: Response) => {
     const { teamId } = req.params;
-    const { playerId, playerName } = req.body;
 
     try {
-        const teamPlayer = await prisma.teamPlayer.create({
-            data: { teamId: parseInt(teamId), playerId, playerName },
-        });
-
-        res.status(201).json(teamPlayer);
-    } catch (error) {
-        console.error('Error adding player to team:', error);
-        res.status(500).json({ error: 'Failed to add player to team' });
-    }
-});
-
-// Remove a player from a team
-router.delete('/:teamId/players/:playerId', async (req: Request, res: Response) => {
-    const { teamId, playerId } = req.params;
-
-    try {
-        await prisma.teamPlayer.delete({
+        // Check if the team exists
+        const existingTeam = await prisma.teams.findUnique({
             where: {
-                teamId_playerId: {
-                    teamId: parseInt(teamId),
-                    playerId: parseInt(playerId),
-                },
+                teamId: parseInt(teamId),
             },
         });
 
-        res.status(204).send();
+        if (!existingTeam) {
+            res.status(404).json({ error: 'Team not found' });
+            return;
+        }
+
+        // Delete the team's players from the teamPlayer table
+        await prisma.teamPlayer.deleteMany({
+            where: {
+                teamId: parseInt(teamId),
+            },
+        });
+
+        // Delete the team's tournament-team relationship from the tournamentTeam table
+        await prisma.tournamentTeams.deleteMany({
+            where: {
+                teamId: parseInt(teamId),
+            },
+        });
+
+        // Delete the team itself
+        await prisma.teams.delete({
+            where: {
+                teamId: parseInt(teamId),
+            },
+        });
+
+        res.status(200).json({ message: 'Team deleted successfully' });
     } catch (error) {
-        console.error('Error removing player from team:', error);
-        res.status(500).json({ error: 'Failed to remove player from team' });
+        console.error('Error deleting team:', error);
+        res.status(500).json({ error: 'Failed to delete team' });
     }
 });
+
+// Add a player to a team
+// router.post('/:teamId/players', async (req: Request, res: Response) => {
+//     const { teamId } = req.params;
+//     const { playerId, playerName } = req.body;
+
+//     try {
+//         const teamPlayer = await prisma.teamPlayer.create({
+//             data: { teamId: parseInt(teamId), playerId, playerName },
+//         });
+
+//         res.status(201).json(teamPlayer);
+//     } catch (error) {
+//         console.error('Error adding player to team:', error);
+//         res.status(500).json({ error: 'Failed to add player to team' });
+//     }
+// });
+
+// Remove a player from a team
+// router.delete('/:teamId/players/:playerId', async (req: Request, res: Response) => {
+//     const { teamId, playerId } = req.params;
+
+//     try {
+//         await prisma.teamPlayer.delete({
+//             where: {
+//                 teamId_playerId: {
+//                     teamId: parseInt(teamId),
+//                     playerId: parseInt(playerId),
+//                 },
+//             },
+//         });
+
+//         res.status(204).send();
+//     } catch (error) {
+//         console.error('Error removing player from team:', error);
+//         res.status(500).json({ error: 'Failed to remove player from team' });
+//     }
+// });
 
 export default router;
