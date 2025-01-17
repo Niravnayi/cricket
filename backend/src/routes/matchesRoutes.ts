@@ -20,7 +20,9 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const matches = await prisma.matches.findMany({
-            include: { scorecard: true },
+            include: { 
+                scorecard: true 
+            },
         });
         res.json(matches);
     } catch (error) {
@@ -37,7 +39,9 @@ router.get('/:id', async (req: Request, res: Response) => {
                 matchId: parseInt(id) 
             },
             include: { 
-                scorecard: true 
+                scorecard: {
+                    include: { battingStats: true, bowlingStats: true, extras: true }
+                } 
             },
         });
         res.json(match);
