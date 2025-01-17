@@ -131,5 +131,4 @@ router.get('/tournaments/:organizerId', async (req: Request, res: Response) => {
     }
 });
 
-
 export default router;
