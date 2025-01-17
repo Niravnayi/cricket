@@ -1,7 +1,7 @@
 export interface BattingStat {
     scorecardId: number;
-    playerName: string;
-    teamName: string;
+    playerId: number;
+    teamId: number;
     runs: number;
     balls: number;
     fours: number;

@@ -2,8 +2,6 @@ import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
 import { BowlingStat } from '../types/bowlingStatsRoute';
 
-
-
 const router = express.Router();
 
 // Get all bowling stats
@@ -18,19 +16,37 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Post a new bowling stat
 router.post('/', async (req, res) => {
-    const { scorecardId, playerName, teamName, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
+    const { scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
 
-    if (!scorecardId || !playerName || !teamName || !overs || !maidens || !runsConceded || !wickets || !economyRate) {
+    if (!scorecardId || !playerId || !teamId || !overs || !maidens || !runsConceded || !wickets || !economyRate) {
         res.status(400).json({ error: 'Missing required fields' });
         return
     }
 
     try {
+
+        const player = await prisma.players.findUnique({
+            where: {
+                playerId: playerId,
+            },
+        })
+
+        const team = await prisma.teams.findUnique({
+            where: {
+                teamId: teamId,
+            },
+        })
+
+        if (!player || !team) {
+            res.status(404).json({ error: 'Player or Team not found' });
+            return;
+        }
+
         const newBowlingStat = await prisma.bowlingStats.create({
             data: {
                 scorecardId,
-                playerName,
-                teamName,
+                playerName: player.playerName,
+                teamName: team.teamName,
                 overs,
                 maidens,
                 runsConceded,
@@ -47,20 +63,38 @@ router.post('/', async (req, res) => {
 // Update a bowling stat
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { scorecardId, playerName, teamName, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
+    const { scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
 
-    if (!scorecardId || !playerName || !teamName || !overs || !maidens || !runsConceded || !wickets || !economyRate) {
+    if (!scorecardId || !playerId || !teamId || !overs || !maidens || !runsConceded || !wickets || !economyRate) {
         res.status(400).json({ error: 'Missing required fields' });
         return
     }
     
     try {
+
+        const player = await prisma.players.findUnique({
+            where: {
+                playerId: playerId,
+            },
+        })
+
+        const team = await prisma.teams.findUnique({
+            where: {
+                teamId: teamId,
+            },
+        })
+
+        if (!player || !team) {
+            res.status(404).json({ error: 'Player or Team not found' });
+            return;
+        }
+
         const updatedBowlingStat = await prisma.bowlingStats.update({
             where: { bowlingStatsId: parseInt(id) },
             data: {
                 scorecardId,
-                playerName,
-                teamName,
+                playerName: player.playerName,
+                teamName: team.teamName,
                 overs,
                 maidens,
                 runsConceded,

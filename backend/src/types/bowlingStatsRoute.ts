@@ -1,7 +1,7 @@
 export interface BowlingStat {
     scorecardId: number;
-    playerName: string;
-    teamName: string;
+    playerId: number;
+    teamId: number;
     overs: number;
     maidens: number;
     runsConceded: number;
