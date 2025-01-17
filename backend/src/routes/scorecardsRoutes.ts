@@ -1,19 +1,6 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
-
-interface Scorecard {
-    scorecardId: number;
-    matchId: number;
-    battingStats: any[];
-    bowlingStats: any[];
-    extras: any[];
-    teamAScore: number;
-    teamBScore: number;
-    teamAWickets: number;
-    teamBWickets: number;
-    teamAOvers: number;
-    teamBOvers: number;
-}
+import { Scorecard } from '../types/scorecardRoute';
 
 const router = express.Router();
 
