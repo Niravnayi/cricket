@@ -1,16 +1,8 @@
 import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
+import { BowlingStat } from '../types/bowlingStatsRoute';
 
-interface BowlingStat {
-    scorecardId: number;
-    playerName: string;
-    teamName: string;
-    overs: number;
-    maidens: number;
-    runsConceded: number;
-    wickets: number;
-    economyRate: number;
-}
+
 
 const router = express.Router();
 

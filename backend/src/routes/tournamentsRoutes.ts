@@ -1,11 +1,6 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index';
-
-interface Tournament {
-    tournamentName: string;
-    organizerId: number;
-    teamIds: number[];
-}
+import { Tournament } from '../types/tournamentsRoute';
 
 const router = express.Router();
 
@@ -99,7 +94,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
-// Update a tournament
+// Update a tournament and replace all its teams
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { tournamentName, organizerId, teamIds }: Tournament = req.body;
@@ -143,15 +138,14 @@ router.put('/:id', async (req: Request, res: Response) => {
             },
         });
 
-        // Update team associations if provided
+        // If teamIds are provided, replace existing teams
         if (Array.isArray(teamIds)) {
-
-            // Remove old associations
+            // Delete old team associations
             await prisma.tournamentTeams.deleteMany({
                 where: { tournamentId },
             });
 
-            // Add new associations
+            // Add new team associations
             await prisma.tournamentTeams.createMany({
                 data: teamIds.map((teamId) => ({ tournamentId, teamId })),
             });
@@ -163,6 +157,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to update tournament' });
     }
 });
+
 
 // Delete a tournament
 router.delete('/:id', async (req: Request, res: Response) => {
@@ -199,45 +194,45 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // Remove a team from a tournament
-router.delete('/:tournamentId/teams/:teamId', async (req: Request, res: Response) => {
-    const { tournamentId, teamId } = req.params;
+// router.delete('/:tournamentId/teams/:teamId', async (req: Request, res: Response) => {
+//     const { tournamentId, teamId } = req.params;
 
-    if (isNaN(Number(tournamentId)) || isNaN(Number(teamId))) {
-        res.status(400).json({ error: 'Invalid tournament ID or team ID' });
-        return;
-    }
+//     if (isNaN(Number(tournamentId)) || isNaN(Number(teamId))) {
+//         res.status(400).json({ error: 'Invalid tournament ID or team ID' });
+//         return;
+//     }
 
-    try {
-        // Check if the team is part of the tournament
-        const tournamentTeam = await prisma.tournamentTeams.findUnique({
-            where: {
-                tournamentId_teamId: {
-                    tournamentId: Number(tournamentId),
-                    teamId: Number(teamId),
-                },
-            },
-        });
+//     try {
+//         // Check if the team is part of the tournament
+//         const tournamentTeam = await prisma.tournamentTeams.findUnique({
+//             where: {
+//                 tournamentId_teamId: {
+//                     tournamentId: Number(tournamentId),
+//                     teamId: Number(teamId),
+//                 },
+//             },
+//         });
 
-        if (!tournamentTeam) {
-            res.status(404).json({ error: 'Team not found in the specified tournament' });
-            return;
-        }
+//         if (!tournamentTeam) {
+//             res.status(404).json({ error: 'Team not found in the specified tournament' });
+//             return;
+//         }
 
-        // Remove the team from the tournament
-        await prisma.tournamentTeams.delete({
-            where: {
-                tournamentId_teamId: {
-                    tournamentId: Number(tournamentId),
-                    teamId: Number(teamId),
-                },
-            },
-        });
+//         // Remove the team from the tournament
+//         await prisma.tournamentTeams.delete({
+//             where: {
+//                 tournamentId_teamId: {
+//                     tournamentId: Number(tournamentId),
+//                     teamId: Number(teamId),
+//                 },
+//             },
+//         });
 
-        res.status(200).json({ message: 'Team removed from the tournament successfully' });
-    } catch (error) {
-        console.error('Error removing team from tournament:', error);
-        res.status(500).json({ error: 'Failed to remove team from tournament' });
-    }
-});
+//         res.status(200).json({ message: 'Team removed from the tournament successfully' });
+//     } catch (error) {
+//         console.error('Error removing team from tournament:', error);
+//         res.status(500).json({ error: 'Failed to remove team from tournament' });
+//     }
+// });
 
 export default router;

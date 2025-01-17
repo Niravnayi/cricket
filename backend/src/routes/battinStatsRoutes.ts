@@ -1,17 +1,7 @@
 import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
+import { BattingStat } from '../types/battingStatsRoute';
 
-interface BattingStat {
-    scorecardId: number;
-    playerName: string;
-    teamName: string;
-    runs: number;
-    balls: number;
-    fours: number;
-    sixes: number;
-    strikeRate: number;
-    dismissal: string;
-}
 
 const router = express.Router();
 
