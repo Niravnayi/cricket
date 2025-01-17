@@ -1,4 +1,6 @@
 import express from 'express';
+import signinRoutes from './routes/signinRoutes'
+import signupRoutes from './routes/signupRoutes'
 import usersRoutes from './routes/usersRoutes'
 import organizersRoutes from './routes/organizersRoutes'
 import playersRoutes from './routes/playersRoutes'
@@ -15,6 +17,8 @@ const port = 4000;
 
 app.use(express.json());
 
+app.use('/signin', signinRoutes);
+app.use('/signup', signupRoutes);
 app.use('/users', usersRoutes);
 app.use('/organizers',organizersRoutes)
 app.use('/players',playersRoutes)
