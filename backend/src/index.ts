@@ -11,11 +11,17 @@ import scorecardRoute from './routes/scorecardsRoutes'
 import battingStatsRoutes from './routes/battinStatsRoutes'
 import bowlingStatsRoutes from './routes/bowlingStatsRoutes'
 import extrasRoutes from './routes/extrasRoutes'
+import cors from 'cors'
 
 const app = express();
 const port = 4000;
 
 app.use(express.json());
+app.use(cors({
+  origin: ['http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}))
 
 app.use('/signin', signinRoutes);
 app.use('/signup', signupRoutes);

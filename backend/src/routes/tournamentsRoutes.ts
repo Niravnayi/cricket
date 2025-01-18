@@ -35,8 +35,11 @@ router.get('/:id', async (req: Request, res: Response) => {
             where: { tournamentId: Number(id) },
             include: {
                 teams: {
-                    include: { team: true },
+                    include: { team: true }
                 },
+                matches: {
+                    include: {scorecard:true}
+                }
             },
         });
 
@@ -181,18 +184,38 @@ router.delete('/:id', async (req: Request, res: Response) => {
             return;
         }
 
-        // Delete tournament and its related data
+        // Delete related records (e.g., tournamentTeams, matches, scorecards)
+        await prisma.tournamentTeams.deleteMany({
+            where: { tournamentId },
+        });
+        await prisma.battingStats.deleteMany({
+            where: { scorecard: {match: { tournamentId } }}, // Delete scorecards related to matches from this tournament
+        });
+        await prisma.bowlingStats.deleteMany({
+            where: { scorecard: {match: { tournamentId } }}, // Delete scorecards related to matches from this tournament
+        });
+        await prisma.extras.deleteMany({
+            where: { scorecard: {match: { tournamentId } }}, // Delete scorecards related to matches from this tournament
+        });
+        await prisma.scorecard.deleteMany({
+            where: { match: { tournamentId } }, // Delete scorecards related to matches from this tournament
+        });
+
+        await prisma.matches.deleteMany({
+            where: { tournamentId },
+        });
+
+        // Finally, delete the tournament
         await prisma.tournaments.delete({
             where: { tournamentId },
         });
 
-        res.status(200).json({ message: 'Tournament deleted successfully' });
+        res.status(200).json({ message: 'Tournament and related data deleted successfully' });
     } catch (err) {
         console.error('Error deleting tournament:', err);
         res.status(500).json({ error: 'Failed to delete tournament' });
     }
 });
-
 // Remove a team from a tournament
 // router.delete('/:tournamentId/teams/:teamId', async (req: Request, res: Response) => {
 //     const { tournamentId, teamId } = req.params;

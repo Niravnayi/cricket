@@ -37,7 +37,9 @@ router.get('/:id', async (req: Request, res: Response) => {
                 matchId: parseInt(id) 
             },
             include: { 
-                scorecard: true 
+                scorecard: {
+                    include: { battingStats: true,bowlingStats:true }
+                } ,               
             },
         });
         res.json(match);
@@ -46,10 +48,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 });
 
-// Create a new match
 router.post('/', async (req: Request, res: Response) => {
     const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
-
     try {
         // Fetch team names for the given team IDs
         const [firstTeam, secondTeam] = await Promise.all([
@@ -62,14 +62,10 @@ router.post('/', async (req: Request, res: Response) => {
                 select: { teamName: true },
             }),
         ]);
-
-        // Check if teams were found
         if (!firstTeam || !secondTeam) {
             res.status(404).json({ error: 'One or both teams not found' });
             return 
         }
-
-        // Create the match with team names dynamically fetched
         const newMatch = await prisma.matches.create({
             data: {
                 tournamentId,

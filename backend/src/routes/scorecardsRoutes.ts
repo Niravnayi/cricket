@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const scorecards = await prisma.scorecard.findMany({
-            include: { match: true },
+            include: { match: true, battingStats:true ,bowlingStats:true},
         });
         res.json(scorecards);
     } catch (error) {

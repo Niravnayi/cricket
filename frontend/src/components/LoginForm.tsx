@@ -17,8 +17,8 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
   const [isClient, setIsClient] = useState(false);
-  const [email,setEmail] = useState('')
-  const [password,setPassword] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -29,22 +29,24 @@ export function LoginForm({
     formState: { errors },
   } = useForm<LoginFormValues>();
 
-  const onSubmit: SubmitHandler<LoginFormValues> =  async (data) => {
+  const onSubmit: SubmitHandler<LoginFormValues> = async (data,e) => {
+    e?.preventDefault()
     console.log("Form Data:", data);
     try {
       const res = await signIn('Credentials', {
-        email,
-        password,
-        role:"user",
-        redirect:false,
+        email: email,
+        password: password,
+        role: "user",
+        redirect: false,
       });
-      console.log(res)
+
+      console.log(res);
       if (res?.ok) {
         console.log('Login successful!');
-        console.log(res)
+        // Add any custom actions after login success
       } else {
         console.log('Sign in failed');
-        console.log(res?.error|| 'Unknown error occurred');
+        console.log(res?.error || 'Unknown error occurred');
       }
     } catch (error) {
       console.error('An error occurred during sign-in:', error);

@@ -111,6 +111,11 @@ router.get('/tournaments/:organizerId', async (req: Request, res: Response) => {
             where: {
                 organizerId: Number(organizerId), 
             },
+            include: {
+                teams: {
+                    include: { team: true },
+                },
+            },
         });
 
         if (tournaments.length === 0) {

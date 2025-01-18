@@ -1,16 +1,8 @@
-<<<<<<< Updated upstream
-
-export default function Home() {
-  return (
-    <>
-      <h1>home page</h1>
-    </>
-=======
 'use client'
-
 import { LoginForm } from "@/components/LoginForm";
-import login from '../../public/lords.jpg'
+import login from '../../../public/lords.jpg'
 import Image from 'next/image';
+
 
 // // Define TypeScript interface for tournaments
 // interface Tournament {
@@ -35,6 +27,6 @@ export default function Home() {
       <LoginForm />
     </div>
   </div>
->>>>>>> Stashed changes
+
   );
 }
