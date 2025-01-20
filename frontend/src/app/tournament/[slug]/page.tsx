@@ -1,55 +1,23 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Tournament } from "@/Types/tournament";
-import { Match } from "@/Types/match";
-import axios from "axios";
-import axiosClient from "@/utils/axiosClient";
+import { useTournamentDetails } from "@/Hooks/useTournamentData";
 
 export default function Home() {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [activeTab, setActiveTab] = useState<
-    "live" | "scheduled" | "completed"
-  >("live");
-  const params = useParams();
-  const id = params?.slug;
+  const {
+    tournament,
+    activeTab,
+    setActiveTab,
+    liveMatches,
+    scheduledMatches,
+    completedMatches,
+    error,
+  } = useTournamentDetails();
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!id) {
-        console.error("No ID provided for fetching tournaments");
-        return;
-      }
-
-      try {
-        // Use axiosClient to fetch data
-        const response = await axiosClient.get(`/tournaments/${id}`);
-        if (response.status === 200) {
-          const data = Array.isArray(response.data)
-            ? response.data
-            : [response.data];
-          setTournaments(data);
-          console.log("Fetched Data:", data);
-        } else {
-          console.error("Unexpected response:", response);
-        }
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          alert(`Tournament with ID ${id} not found.`);
-        } else {
-          console.error("Error fetching tournaments:", error);
-        }
-      }
-    }
-
-    fetchData();
-  }, [id]);
-
-  const renderMatches = (matches: Match[]) => (
+  const renderMatches = (matches: typeof liveMatches) => (
     <ul className="space-y-6 mt-4">
-      {matches.map((match, index: number) => (
+      {matches.map((match, index) => (
         <Link
           key={index}
           href={`/matches/${match.matchId}`}
@@ -101,6 +69,10 @@ export default function Home() {
     </ul>
   );
 
+  if (error) {
+    return <p className="text-red-500 text-center mt-8">{error}</p>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-200 to-gray-300 p-8">
       <div className="fixed top-0 left-0 right-0 bg-gray-800 z-10 p-4">
@@ -139,53 +111,41 @@ export default function Home() {
       </div>
       <div className="pt-24 w-full max-w-6xl mx-auto space-y-12">
         <AnimatePresence mode="popLayout">
-          {tournaments.map((tournament, index) => {
-            const liveMatches = tournament.matches.filter(
-              (match) => match.isLive
-            );
-            const scheduledMatches = tournament.matches.filter(
-              (match) => !match.isLive && !match.isCompleted
-            );
-            const completedMatches = tournament.matches.filter(
-              (match) => match.isCompleted
-            );
-
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="border rounded-lg shadow-lg overflow-hidden bg-gray-200"
-              >
-                {activeTab === "live" && (
-                  <div className="p-6 bg-gray-300">
-                    <h4 className="text-xl font-bold text-gray-800">
-                      Live Matches:
-                    </h4>
-                    {renderMatches(liveMatches)}
-                  </div>
-                )}
-                {activeTab === "scheduled" && (
-                  <div className="p-6 bg-gray-300">
-                    <h4 className="text-xl font-bold text-gray-800">
-                      Scheduled Matches:
-                    </h4>
-                    {renderMatches(scheduledMatches)}
-                  </div>
-                )}
-                {activeTab === "completed" && (
-                  <div className="p-6 bg-gray-300">
-                    <h4 className="text-xl font-bold text-gray-800">
-                      Completed Matches:
-                    </h4>
-                    {renderMatches(completedMatches)}
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
+          {tournament && (
+            <motion.div
+              key={tournament.tournamentId}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="border rounded-lg shadow-lg overflow-hidden bg-gray-200"
+            >
+              {activeTab === "live" && (
+                <div className="p-6 bg-gray-300">
+                  <h4 className="text-xl font-bold text-gray-800">
+                    Live Matches:
+                  </h4>
+                  {renderMatches(liveMatches)}
+                </div>
+              )}
+              {activeTab === "scheduled" && (
+                <div className="p-6 bg-gray-300">
+                  <h4 className="text-xl font-bold text-gray-800">
+                    Scheduled Matches:
+                  </h4>
+                  {renderMatches(scheduledMatches)}
+                </div>
+              )}
+              {activeTab === "completed" && (
+                <div className="p-6 bg-gray-300">
+                  <h4 className="text-xl font-bold text-gray-800">
+                    Completed Matches:
+                  </h4>
+                  {renderMatches(completedMatches)}
+                </div>
+              )}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>

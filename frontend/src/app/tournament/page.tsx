@@ -1,35 +1,19 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import axiosClient from "@/utils/axiosClient";
+import React from "react";
 import Link from "next/link";
-import { Tournament } from "@/Types/tournament";
+import { useTournaments } from "@/Hooks/useTournaments";
 
 export default function Home() {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await axiosClient.get("/tournaments"); // Use the Axios client here
-        if (response.status === 200) {
-          setTournaments(response.data);
-          console.log("Fetched Tournaments:", response.data);
-        } else {
-          console.error("Unexpected response:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching tournaments:", error);
-      }
-    }
-
-    fetchData();
-  }, []);
+  const { tournaments, error } = useTournaments();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 px-[10%] py-5">
       <h1 className="text-4xl font-bold text-center text-indigo-700 mb-8">
         Tournaments
       </h1>
+
+      {error && <p className="text-red-500 text-center mb-6">{error}</p>}
+
       <ul className="space-y-6 flex flex-col w-full ">
         {tournaments.map((tournament) => (
           <Link
