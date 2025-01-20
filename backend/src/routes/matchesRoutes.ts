@@ -38,7 +38,7 @@ router.get('/:id', async (req: Request, res: Response) => {
             },
             include: { 
                 scorecard: {
-                    include: { battingStats: true,bowlingStats:true }
+                    include: { battingStats: true, bowlingStats:true, extras: true },
                 } ,               
             },
         });

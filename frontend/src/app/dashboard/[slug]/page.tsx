@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosClient from "@/utils/axiosClient"; // import axios client
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button"; // Import ShadCN Button
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogTrigger,
@@ -11,28 +11,20 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"; // Import ShadCN Dialog components
+} from "@/components/ui/dialog";
+import { Tournament } from "@/Types/tournament";
+import { Team } from "@/Types/team";
 
 const Dashboard = () => {
-  interface Tournament {
-    tournamentId: number;
-    tournamentName: string;
-    organizerId: number;
-    teams: { id: number; team: { teamName: string } }[];
-  }
-
-  interface Team {
-    teamId: number;
-    teamName: string;
-  }
-
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // To track whether we're editing or creating
+  const [isEditing, setIsEditing] = useState(false);
   const [tournamentName, setTournamentName] = useState("");
-  const [teams, setTeams] = useState<number[]>([]); // This will store selected team IDs
-  const [currentTournamentId, setCurrentTournamentId] = useState<number | null>(null); // To store the ID of the tournament being edited
-  const [teamData, setTeamsData] = useState<Team[]>([]); // This will store all available teams
+  const [teams, setTeams] = useState<number[]>([]);
+  const [currentTournamentId, setCurrentTournamentId] = useState<number | null>(
+    null
+  );
+  const [teamData, setTeamsData] = useState<Team[]>([]);
 
   const params = useParams();
   const id = params?.slug;
@@ -41,13 +33,11 @@ const Dashboard = () => {
     async function fetchData() {
       if (id) {
         try {
-          const teamDataResponse = await axios.get(
-            "http://localhost:4000/teams"
-          );
+          const teamDataResponse = await axiosClient.get("/teams");
           setTeamsData(teamDataResponse.data);
 
-          const tournamentsResponse = await axios.get(
-            `http://localhost:4000/organizers/tournaments/${id}`
+          const tournamentsResponse = await axiosClient.get(
+            `/organizers/tournaments/${id}`
           );
           const data = Array.isArray(tournamentsResponse.data)
             ? tournamentsResponse.data
@@ -71,17 +61,17 @@ const Dashboard = () => {
 
       if (isEditing && currentTournamentId !== null) {
         // Update the existing tournament
-        await axios.put(
-          `http://localhost:4000/tournaments/${currentTournamentId}`,
+        await axiosClient.put(
+          `/tournaments/${currentTournamentId}`,
           newTournament
         );
       } else {
         // Create a new tournament
-        await axios.post(`http://localhost:4000/tournaments/`, newTournament);
+        await axiosClient.post(`/tournaments/`, newTournament);
       }
 
-      const updatedData = await axios.get(
-        `http://localhost:4000/organizers/tournaments/${id}`
+      const updatedData = await axiosClient.get(
+        `/organizers/tournaments/${id}`
       );
       setTournaments(updatedData.data);
 
@@ -95,11 +85,16 @@ const Dashboard = () => {
       console.error("Error creating/updating tournament:", error);
     }
   };
-console.log(teams);
 
-  const handleDelete = (id: number) => {
-    axios.delete(`http://localhost:4000/tournaments/${id}`);
-    window.location.reload();
+  const handleDelete = async (id: number) => {
+    try {
+      await axiosClient.delete(`/tournaments/${id}`);
+      setTournaments((prev) =>
+        prev.filter((tournament) => tournament.tournamentId !== id)
+      );
+    } catch (error) {
+      console.error("Error deleting tournament:", error);
+    }
   };
 
   const handleTeamSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -132,7 +127,7 @@ console.log(teams);
                 key={tournament.tournamentId}
                 className="bg-white shadow-lg rounded-lg overflow-hidden mb-6"
               >
-                <div className="bg-[#009270] text-white p-6">
+                <div className="bg-[#009270] text-white p-10 hover:shadow-[0_0_20px_rgb(0,153,112)] hover:scale-105 transition-all duration-300">
                   <h2 className="text-2xl font-bold">
                     {tournament.tournamentName}
                   </h2>
@@ -141,6 +136,7 @@ console.log(teams);
                   </p>
                   <div className="mt-4">
                     <h3 className="text-lg font-semibold text-white">Teams:</h3>
+
                     {tournament.teams.map((team) => (
                       <p key={team.id} className="text-sm text-gray-300">
                         {team.team.teamName}
@@ -148,13 +144,13 @@ console.log(teams);
                     ))}
                     <div className="flex justify-between">
                       <button
-                        className="p-2 justify-end w-24 text-white bg-red-400"
+                        className="p-2 mt-5 justify-end w-24 text-white bg-red-600 hover:bg-red-700 transition-all duration-300"
                         onClick={() => handleDelete(tournament.tournamentId)}
                       >
                         Delete
                       </button>
                       <button
-                        className="p-2 justify-end w-24 text-white bg-yellow-400"
+                        className="p-2 mt-5 justify-end w-24 text-black bg-blue-500 hover:bg-blue-600 transition-all duration-300"
                         onClick={() => handleEdit(tournament)}
                       >
                         Edit
@@ -180,6 +176,7 @@ console.log(teams);
             <DialogTitle className="text-2xl font-semibold mb-4">
               {isEditing ? "Edit Tournament" : "Create New Tournament"}
             </DialogTitle>
+
             <DialogDescription className="mb-6 text-gray-700">
               Please fill in the tournament details.
             </DialogDescription>
@@ -207,7 +204,7 @@ console.log(teams);
                     <option value="">Select a Team</option>
                     {teamData.map((team) => (
                       <option key={team.teamId} value={team.teamId}>
-                        {team.teamName}
+                        {team.team.teamName}
                       </option>
                     ))}
                   </select>
@@ -241,7 +238,7 @@ console.log(teams);
                     const team = teamData.find((t) => t.teamId === teamId);
                     return team ? (
                       <li key={teamId} className="text-sm text-gray-600">
-                        {team.teamName}
+                        {team.team.teamName}
                       </li>
                     ) : null;
                   })}
@@ -258,8 +255,7 @@ console.log(teams);
                 </Button>
                 <Button
                   onClick={handleCreateTournament}
-                  className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]"
-                >
+                  className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]">
                   {isEditing ? "Update Tournament" : "Create Tournament"}
                 </Button>
               </DialogFooter>

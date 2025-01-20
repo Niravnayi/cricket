@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import axiosClient from '@/utils/axiosClient';
 
 type BattingStats = {
   playerName: string;
@@ -42,14 +43,14 @@ const Matches = () => {
   const params = useParams();
   const id = params?.slug;
 
+ 
   useEffect(() => {
     async function fetchData() {
       if (id) {
         try {
-          const response = await axios.get(`http://localhost:4000/matches/${id}`);
+          const response = await axiosClient.get(`/matches/${id}`); // Use the Axios client here
           const data = Array.isArray(response.data) ? response.data : [response.data];
-          console.log(data);
-          
+          console.log('response data', data);
           setMatch(data);
         } catch (error) {
           console.error('Error fetching tournaments:', error);
@@ -58,6 +59,7 @@ const Matches = () => {
     }
     fetchData();
   }, [id]);
+
 
   return (
     <div className="bg-gray-100 min-h-screen">
