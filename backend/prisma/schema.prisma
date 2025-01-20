@@ -66,6 +66,12 @@ model players {
   @@index([playerName])
 }
 
+enum playerRole {
+  BATSMAN
+  BOWLER
+  ALLROUNDER
+}
+
 model teamPlayer {
   id       Int     @id @default(autoincrement())
   team     teams   @relation(fields: [teamId], references: [teamId])
@@ -90,7 +96,8 @@ model matches {
   result             String
   isLive             Boolean
   isCompleted        Boolean
-  scorecard          scorecard?   @relation("MatchScorecard") 
+  scorecard          scorecard?   @relation("MatchScorecard")
+  matchState         matchState?  
 }
 
 model scorecard {
@@ -147,8 +154,14 @@ model bowlingStats {
   economyRate      Float
 }
 
-enum playerRole {
-  BATSMAN
-  BOWLER
-  ALLROUNDER
+model matchState {
+  id               Int      @id @default(autoincrement())
+  matchId          Int
+  currentBatter1Id Int?
+  currentBatter2Id Int?
+  currentBowlerId  Int?
+
+  match            matches  @relation(fields: [matchId], references: [matchId])
+
+  @@unique([matchId])  // Ensures one entry per match
 }
