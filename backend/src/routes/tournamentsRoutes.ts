@@ -189,12 +189,23 @@ router.delete('/:id', async (req: Request, res: Response) => {
             where: { tournamentId },
         });
 
-        await prisma.matches.deleteMany({
-            where: { tournamentId },
+        await prisma.battingStats.deleteMany({
+            where: { scorecard: {match: { tournamentId } }}, 
+        });
+    
+        await prisma.bowlingStats.deleteMany({
+            where: { scorecard: {match: { tournamentId } }}, 
         });
 
+        await prisma.extras.deleteMany({
+            where: { scorecard: {match: { tournamentId } }}, 
+        });
         await prisma.scorecard.deleteMany({
-            where: { match: { tournamentId } }, // Delete scorecards related to matches from this tournament
+            where: { match: { tournamentId } },
+        });
+
+        await prisma.matches.deleteMany({
+            where: { tournamentId },
         });
 
         // Finally, delete the tournament

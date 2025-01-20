@@ -12,6 +12,7 @@ import scorecardRoute from './routes/scorecardsRoutes'
 import battingStatsRoutes from './routes/battingStatsRoutes'
 import bowlingStatsRoutes from './routes/bowlingStatsRoutes'
 import extrasRoutes from './routes/extrasRoutes'
+import matchStateRoutes from './routes/matchStateRoutes'
 
 const app = express();
 app.use(cors());
@@ -31,6 +32,7 @@ app.use('/scorecards',scorecardRoute)
 app.use('/batting-stats',battingStatsRoutes)
 app.use('/bowling-stats',bowlingStatsRoutes)
 app.use('/extras',extrasRoutes)
+app.use('/match-state',matchStateRoutes)
 
 
 app.listen(port, () => {
