@@ -1,18 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
-
-interface Match {
-    tournamentId: number;
-    firstTeamId: number;
-    firstTeamName: string;
-    secondTeamId: number;
-    secondTeamName: string;
-    dateTime: Date;
-    venue: string;
-    isLive: boolean;
-    result: string;
-    isCompleted: boolean
-}
+import { io } from '../index';
+import { Match } from '../types/matchesRoute';
 
 const router = express.Router();
 
@@ -89,6 +78,7 @@ router.post('/', async (req: Request, res: Response) => {
             },
         });
 
+        io.emit('matchCreated', newMatch);
         res.status(201).json(newMatch);
     } catch (error) {
         console.error(error);
@@ -135,6 +125,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             },
         });
 
+        io.emit('matchUpdated', updatedMatch);
         res.json(updatedMatch);
     } catch (error) {
         console.error(error);
@@ -147,12 +138,14 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        await prisma.matches.delete({
+        const deletedMatch = await prisma.matches.delete({
             where: { 
                 matchId: parseInt(id) 
             },
         });
-        res.status(204).send();
+        
+        io.emit('matchDeleted', deletedMatch);
+        res.status(200).json({message: "Match deleted successfully", deletedMatch});
     } catch (error) {
         res.status(500).json({ error: 'Error deleting match' });
     }

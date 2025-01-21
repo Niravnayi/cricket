@@ -1,7 +1,7 @@
 import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
 import { BattingStat } from '../types/battingStatsRoute';
-
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -26,9 +26,9 @@ router.post('/', async (req: Request, res: Response) => {
 
     try {
         
-        const player = await prisma.players.findUnique({
+        const player = await prisma.teamPlayer.findUnique({
             where: {
-                playerId: playerId,
+                id: playerId,
             },
         })
 
@@ -56,6 +56,8 @@ router.post('/', async (req: Request, res: Response) => {
                 dismissal,
             },
         });
+
+        io.emit('newBattingStat', newBattingStat);
         res.status(201).json(newBattingStat);
     } catch (error) {
         res.status(500).json({ error: 'Error adding batting stats' });
@@ -105,6 +107,8 @@ router.put('/:id', async (req: Request, res: Response) => {
                 dismissal,
             },
         });
+
+        io.emit('updatedBattingStat', updatedBattingStat);
         res.json(updatedBattingStat);
     } catch (error) {
         res.status(500).json({ error: 'Error updating batting stats' });
@@ -116,10 +120,12 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        await prisma.battingStats.delete({
+        const deletedBattingStat = await prisma.battingStats.delete({
             where: { battingStatsId: parseInt(id) },
         });
-        res.status(204).send();
+
+        io.emit('deletedBattingStat', deletedBattingStat);
+        res.status(200).json({message: "Batting stat deleted successfully", deletedBattingStat});
     } catch (error) {
         res.status(500).json({ error: 'Error deleting batting stats' });
     }

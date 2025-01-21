@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index';
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -55,6 +56,7 @@ router.post('/', async (req, res) => {
       },
     });
 
+    io.emit('playerCreated', newPlayer);
     res.status(201).json(newPlayer);
   } catch (error) {
     if (error instanceof Error) {
@@ -81,6 +83,7 @@ router.put('/:id', async (req, res) => {
       },
     });
 
+    io.emit('playerUpdated', updatedPlayer);
     res.status(200).json(updatedPlayer);
   } catch (error) {
     if (error instanceof Error) {
@@ -96,11 +99,12 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.players.delete({
+    const deletedPlayer = await prisma.players.delete({
       where: { playerId: parseInt(id) },
     });
 
-    res.status(204).send();
+    io.emit('playerDeleted', deletedPlayer);
+    res.status(200).json({message: "Player deleted successfully", deletedPlayer});
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });

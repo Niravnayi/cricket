@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import { Server } from 'socket.io';
+import http from 'http'
 import signinRoutes from './routes/signinRoutes'
 import signupRoutes from './routes/signupRoutes'
 import usersRoutes from './routes/usersRoutes'
@@ -15,6 +17,10 @@ import extrasRoutes from './routes/extrasRoutes'
 import matchStateRoutes from './routes/matchStateRoutes'
 
 const app = express();
+
+const server = http.createServer(app);
+export const io = new Server(server);
+
 app.use(cors());
 const port = 4000;
 
@@ -34,6 +40,9 @@ app.use('/bowling-stats',bowlingStatsRoutes)
 app.use('/extras',extrasRoutes)
 app.use('/match-state',matchStateRoutes)
 
+io.on('connection', (socket) => {
+  console.log('a user connected');
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

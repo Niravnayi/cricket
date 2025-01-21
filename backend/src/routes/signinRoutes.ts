@@ -18,13 +18,13 @@ router.post('/', async (req: Request, res: Response) => {
         if (role === 'user') {
             user = await prisma.users.findUnique({ where: { userEmail: email } })
             if (!user || !user.userPassword) {
-                res.status(400).json({ error: 'User not found' });
+                res.status(404).json({ error: 'User not found' });
                 return;
             }
             // Compare hashed password
             const isPasswordValid = await bcrypt.compare(password, user.userPassword);
             if (!isPasswordValid) {
-                res.status(401).json({ error: 'Invalid password' });
+                res.status(401).json({ error: 'Invalid credentials' });
                 return;
             }
 
@@ -48,7 +48,7 @@ router.post('/', async (req: Request, res: Response) => {
             // Compare hashed password
             const isPasswordValid = await bcrypt.compare(password, user.organizerPassword);
             if (!isPasswordValid) {
-                res.status(401).json({ error: 'Invalid password' });
+                res.status(401).json({ error: 'Invalid Credentials' });
                 return;
             }
 

@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
 import { Extras } from '../types/extrasRoute'
-
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -69,6 +69,8 @@ router.post('/', async (req: Request, res: Response) => {
                 totalExtras,
             },
         });
+
+        io.emit('extras', extras);
         res.status(201).json(extras);
     } catch (error) {
         console.error('Error creating extras:', error);
@@ -105,6 +107,8 @@ router.put('/:id', async (req: Request, res: Response) => {
                 totalExtras,
             },
         });
+
+        io.emit('extras', extras);
         res.status(200).json(extras);
     } catch (error) {
         console.error('Error updating extras:', error);
@@ -117,10 +121,12 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        const extras = await prisma.extras.delete({
+        const deletedExtras = await prisma.extras.delete({
             where: { extrasId: Number(id) },
         });
-        res.status(200).json(extras);
+
+        io.emit('extras', deletedExtras);
+        res.status(200).json({message: 'Extras deleted successfully', deletedExtras});
     } catch (error) {
         console.error('Error deleting extras:', error);
         res.status(500).json({ error: 'Failed to delete extras' });

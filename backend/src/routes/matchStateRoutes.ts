@@ -1,5 +1,6 @@
 import prisma from "../../prisma";
 import express, { Request, Response } from 'express';
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -59,6 +60,7 @@ router.post('/', async (req: Request, res: Response) => {
         });
 
         // Return the created match state
+        io.emit('matchStateCreated', newMatchState);
         res.status(201).json(newMatchState);
     } catch (error) {
         console.error('Error creating match state:', error);
@@ -107,6 +109,7 @@ router.put('/:matchId', async (req: Request, res: Response) => {
         });
 
         // Return updated match state
+        io.emit('matchStateUpdated', updatedMatchState);
         res.json(updatedMatchState);
     } catch (error) {
         console.error('Error updating match state:', error);
@@ -118,10 +121,12 @@ router.delete('/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
 
     try {
-        await prisma.matchState.delete({
+        const deletedMatchState = await prisma.matchState.delete({
             where: { matchId: Number(matchId) },
         });
-        res.status(204).send();
+        
+        io.emit('matchStateDeleted', deletedMatchState);
+        res.status(200).json({message: "Match state deleted successfully", deletedMatchState});
     } catch (error) {    
         res.status(500).json({ error: 'Error deleting match state' });
     }

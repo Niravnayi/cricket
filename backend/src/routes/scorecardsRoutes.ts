@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
 import { Scorecard } from '../types/scorecardRoute';
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -56,6 +57,8 @@ router.post('/', async (req: Request, res: Response) => {
                 teamBOvers,
             },
         });
+
+        io.emit('scorecard', newScorecard);
         res.status(201).json(newScorecard);
     } catch (error) {
         res.status(500).json({ error: 'Error creating scorecard' });
@@ -77,6 +80,8 @@ router.put('/:id', async (req: Request, res: Response) => {
             where: { scorecardId: parseInt(id) },
             data: { teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers },
         });
+
+        io.emit('scorecard', updatedScorecard);
         res.json(updatedScorecard);
     } catch (error) {
         res.status(500).json({ error: 'Error updating scorecard' });
@@ -87,10 +92,12 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        await prisma.scorecard.delete({
+        const deletedScorecard = await prisma.scorecard.delete({
             where: { scorecardId: parseInt(id) },
         });
-        res.status(204).send();
+        
+        io.emit('scorecardDeleted', deletedScorecard);
+        res.status(200).json({ message: 'Scorecard deleted successfully', deletedScorecard });
     } catch (error) {
         res.status(500).json({ error: 'Error deleting scorecard' });
     }
