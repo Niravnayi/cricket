@@ -10,11 +10,11 @@ export const useDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [tournamentName, setTournamentName] = useState("");
   const [teams, setTeams] = useState<number[]>([]);
+  
   const [currentTournamentId, setCurrentTournamentId] = useState<number | null>(
     null
   );
   const [teamData, setTeamData] = useState<Team[]>([]);
-
   const params = useParams();
   const id = params?.slug;
 
@@ -42,6 +42,7 @@ export const useDashboard = () => {
 
   const handleCreateTournament = async () => {
     try {
+      setIsEditing(false)
       const newTournament = {
         tournamentName,
         organizerId: id ? parseInt(id as string) : 0,
@@ -63,8 +64,6 @@ export const useDashboard = () => {
         `/organizers/tournaments/${id}`
       );
       setTournaments(updatedData.data);
-
-      // Reset state after operation
       setShowModal(false);
       setTournamentName("");
       setTeams([]);
@@ -93,7 +92,12 @@ export const useDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    console.log("showModal state changed to:", showModal);
+  }, [showModal]);
   const handleEdit = (tournament: Tournament) => {
+
+    console.log(tournament)
     setTournamentName(tournament.tournamentName);
     setCurrentTournamentId(tournament.tournamentId);
     setIsEditing(true);

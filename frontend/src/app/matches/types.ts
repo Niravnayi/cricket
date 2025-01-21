@@ -30,7 +30,7 @@ export type Scorecard = {
   bowlingStats: BowlingStats[];
 };
 
-export type MatchDetails = {
+export type matchDetails = {
   matchId: number;
   firstTeamName: string;
   secondTeamName: string;

@@ -2,13 +2,12 @@
 import { useState, useEffect } from "react";
 import axiosClient from "@/utils/axiosClient";
 import { useParams } from "next/navigation";
-import { MatchDetails } from "@/app/matches/types";
+import { matchDetails } from "@/app/matches/types";
 
 export const useMatchData = () => {
-  const [match, setMatch] = useState<MatchDetails[]>([]);
+  const [match, setMatch] = useState<matchDetails[]>([]);
   const params = useParams();
   const id = params?.slug;
-
   useEffect(() => {
     async function fetchData() {
       if (id) {

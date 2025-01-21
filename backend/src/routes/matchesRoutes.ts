@@ -93,9 +93,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
-
     try {
-        // Fetch team names for the given team IDs
         const [firstTeam, secondTeam] = await Promise.all([
             prisma.teams.findUnique({
                 where: { teamId: firstTeamId },
@@ -106,14 +104,10 @@ router.put('/:id', async (req: Request, res: Response) => {
                 select: { teamName: true },
             }),
         ]);
-
-        // Check if teams were found
         if (!firstTeam || !secondTeam) {
             res.status(404).json({ error: 'One or both teams not found' });
             return 
         }
-
-        // Update the match with new details
         const updatedMatch = await prisma.matches.update({
             where: { matchId: parseInt(id) },
             data: {

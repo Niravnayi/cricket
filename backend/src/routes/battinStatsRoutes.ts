@@ -17,13 +17,18 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Post a new batting stat
 router.post('/', async (req: Request, res: Response) => {
-    const { scorecardId, playerName, teamName, runs, balls, fours, sixes, strikeRate, dismissal }: BattingStat = req.body;
+    const { scorecardId, playerId, teamName, runs, balls, fours, sixes, strikeRate, dismissal }: BattingStat = req.body;
 
-    if (!scorecardId || !playerName || !teamName || !runs || !balls || !fours || !sixes || !strikeRate || !dismissal) {
+    if (!scorecardId || !teamName || !runs || !balls || !fours || !sixes || !strikeRate || !dismissal) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }
-
+    const player = await prisma.teamPlayer.findUnique({
+        where: {
+                id: playerId
+        }
+    });
+    const playerName = player ? player.playerName : '';
     try {
         const newBattingStat = await prisma.battingStats.create({
             data: {
@@ -47,31 +52,21 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a batting stat
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { scorecardId, playerName, teamName, runs, balls, fours, sixes, strikeRate, dismissal }: BattingStat = req.body;
-
-    if (!scorecardId || !playerName || !teamName || !runs || !balls || !fours || !sixes || !strikeRate || !dismissal) {
-        res.status(400).json({ error: 'Missing required fields' });
-        return;
-    }
-
+    const { playerName, updatedPlayerStats } = req.body;
+  
     try {
-        const updatedBattingStat = await prisma.battingStats.update({
-            where: { battingStatsId: parseInt(id) },
-            data: {
-                scorecardId,
-                playerName,
-                teamName,
-                runs,
-                balls,
-                fours,
-                sixes,
-                strikeRate,
-                dismissal,
-            },
-        });
-        res.json(updatedBattingStat);
+      const updatedMatch = await prisma.battingStats.updateMany({
+        where: {
+            scorecardId : Number(id),
+          playerName: playerName,
+        },
+        data: updatedPlayerStats,
+      });
+  
+      res.json(updatedMatch);
     } catch (error) {
-        res.status(500).json({ error: 'Error updating batting stats' });
+      console.error('Error updating player stats:', error);
+      res.status(500).json({ error: 'Error updating player stats' });
     }
 });
 
