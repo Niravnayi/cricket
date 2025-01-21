@@ -1,6 +1,7 @@
 import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
 import { BowlingStat } from '../types/bowlingStatsRoute';
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -54,6 +55,8 @@ router.post('/', async (req, res) => {
                 economyRate,
             },
         });
+
+        io.emit('bowlingStats', newBowlingStat);
         res.status(201).json(newBowlingStat);
     } catch (error) {
         res.status(500).json({ error: 'Error adding bowling stats' });
@@ -102,6 +105,9 @@ router.put('/:id', async (req: Request, res: Response) => {
                 economyRate,
             },
         });
+
+
+        io.emit('bowlingStats', updatedBowlingStat);
         res.json(updatedBowlingStat);
     } catch (error) {
         res.status(500).json({ error: 'Error updating bowling stats' });
@@ -112,10 +118,12 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        await prisma.bowlingStats.delete({
+        const deletedBowlingStat = await prisma.bowlingStats.delete({
             where: { bowlingStatsId: parseInt(id) },
         });
-        res.status(204).send();
+
+        io.emit('bowlingStats', deletedBowlingStat);
+        res.status(200).json({message: "Bowling stat deleted successfully", deletedBowlingStat});
     } catch (error) {
         res.status(500).json({ error: 'Error deleting bowling stats' });
     }
