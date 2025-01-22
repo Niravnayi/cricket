@@ -1,8 +1,8 @@
 // TournamentForm.tsx
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
-import { Tournament } from '@/Types/tournament';
-import { Team } from '@/Types/team';
+import { Team, Tournament } from './types/dashboard';
+
 
 interface TournamentFormProps {
   tournamentData: Tournament | null;

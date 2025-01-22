@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/server-actions/tournamentActions'; 
-import { Tournament } from '@/Types/tournament';
 import TournamentCard from '@/components/Dashboard/tournamentCard';
 import TournamentForm from '@/components/Dashboard/dashboardForm';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
-import { Team } from '@/Types/team';
+import { Team, Tournament } from './types/dashboard';
+
 
 const DashboardTournaments = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -13,7 +13,7 @@ const DashboardTournaments = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   const [teamData, setTeamData] = useState<Team[]>([]);
-  const hasFetchedData = useRef(false); // Ref to track if data has been fetched
+  const hasFetchedData = useRef(false); 
 
   const fetchTournamentsData = async () => {
     try {
@@ -29,7 +29,7 @@ const DashboardTournaments = () => {
 
   if (!hasFetchedData.current) {
     fetchTournamentsData();
-    hasFetchedData.current = true; // Mark that data fetching has been triggered
+    hasFetchedData.current = true;
   }
 
   const handleDelete = async (tournamentId: number) => {
@@ -54,7 +54,7 @@ const DashboardTournaments = () => {
       await createTournament(tournament);
     }
     setShowModal(false);
-    fetchTournamentsData(); // Re-fetch tournaments after creating/updating
+    fetchTournamentsData(); 
   };
 
   const handleCreateTrigger = () => {

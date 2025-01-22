@@ -1,5 +1,5 @@
 import React from 'react'
-import { MatchDetails } from './types/matchDetails'
+import { MatchDetails } from './types/matches'
 const MatchStatusComponent : React.FC<{ matchDetails: MatchDetails }> = ({ matchDetails }) =>{ 
   return (
     <div>
