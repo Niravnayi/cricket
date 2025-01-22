@@ -90,7 +90,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a match
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
+    const { tournamentId, firstTeamId, secondTeamId, venue, dateTime, isLive }: Match = req.body;
 
     try {
         // Fetch team names for the given team IDs
@@ -120,6 +120,7 @@ router.put('/:id', async (req: Request, res: Response) => {
                 secondTeamId,
                 firstTeamName: firstTeam.teamName, 
                 secondTeamName: secondTeam.teamName, 
+                isLive,
                 venue,
                 dateTime: new Date(dateTime),
             },

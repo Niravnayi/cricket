@@ -2,11 +2,17 @@ export interface Tournament {
     tournamentId?: number  | null;
     tournamentName: string;
     organizerId: number;
+    organizer?: Organizer
     teams?: Team[]  | null
     teamIds:number[]  | null
     matches?: Match[] | null
   }
 
+  export interface Organizer {
+    organizerId: number;
+    organizerName: string;
+    organizerEmail: string;
+  }
   export interface Team {
     id: number;
     tournamentId: number;

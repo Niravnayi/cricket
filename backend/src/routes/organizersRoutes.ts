@@ -121,7 +121,8 @@ router.get('/tournaments/:organizerId', async (req: Request, res: Response) => {
             include: {
                 teams: {
                     include: { team: true },
-                }
+                },
+                organizer: true 
             }    
         });
 

@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axiosClient from "@/utils/axiosClient";
 import { BattingStats, MatchDetails } from '@/app/organizer/matches/types/matchType';
-import { fetchMatchDetails } from '@/server-actions/matchActions'; 
+import { fetchMatchDetails } from '@/server-actions/organizerMatchActions'; 
 import { fetchTeamData } from '@/server-actions/tournamentActions';
 import { Team } from '@/Types/team';
 

@@ -15,10 +15,9 @@ import battingStatsRoutes from './routes/battingStatsRoutes'
 import bowlingStatsRoutes from './routes/bowlingStatsRoutes'
 import extrasRoutes from './routes/extrasRoutes'
 import matchStateRoutes from './routes/matchStateRoutes'
+import teamPlayersRoutes from './routes/teamPlayersRoutes'
 
 const app = express();
-
-
 
 app.use(cors());
 const port = 4000;
@@ -38,6 +37,7 @@ app.use('/batting-stats',battingStatsRoutes)
 app.use('/bowling-stats',bowlingStatsRoutes)
 app.use('/extras',extrasRoutes)
 app.use('/match-state',matchStateRoutes)
+app.use('/team-players',teamPlayersRoutes)
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
