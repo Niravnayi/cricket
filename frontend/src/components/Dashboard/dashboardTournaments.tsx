@@ -1,6 +1,6 @@
 // DashboardTournaments.tsx
 import React, { useState } from 'react';
-import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/app/server-actions/tournamentActions'; 
+import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/server-actions/tournamentActions'; 
 import { Tournament } from '@/Types/tournament';
 import TournamentCard from '@/components/Dashboard/tournamentCard';
 import TournamentForm from '@/components/Forms/dashboardForm';

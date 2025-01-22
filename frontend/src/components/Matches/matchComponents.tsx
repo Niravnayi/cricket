@@ -1,51 +1,38 @@
-import { useMatchData } from '@/Hooks/useFetchMatches ';
 import React from 'react';
-import MatchInfo from './matchInfo';
-import ScorePanel from './scorePanel';
-import BattingStatsComponent from './battingStatsComponent';
-import BowlingStatsComponent from './bowlingStatsComponent';
-import MatchStatusComponent from './matchStatusComponent';
+import { fetchMatchById } from '../../server-actions/matchesActions';
+import MatchInfo from '@/components/Matches/matchInfo';
+import ScorePanel from '@/components/Matches/scorePanel';
+import BattingStatsComponent from '@/components/Matches/battingStatsComponent';
+import BowlingStatsComponent from '@/components/Matches/bowlingStatsComponent';
+import MatchStatusComponent from '@/components/Matches/matchStatusComponent';
 
-const MatchComponents = () => {
-    const { match } = useMatchData();
-    return (
-        <div>
-            <section className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Live Matches</h2>
-                {match.length > 0 ? (
-                    match.map((matchDetails) => (
-                        <div
-                            key={matchDetails.matchId}
-                            className="bg-white shadow-lg rounded-lg overflow-hidden mb-6"
-                        >
-                            {/* Match Information */}
-
-                            <MatchInfo matchDetails={matchDetails} />
-
-                            {/* Score Panel */}
-
-                            <ScorePanel matchDetails={matchDetails} />
-
-                            {/* Batting Stats */}
-
-                            <BattingStatsComponent matchDetails={matchDetails} />
-
-                            {/* Bowling Stats */}
-
-                            <BowlingStatsComponent matchDetails={matchDetails} />
-
-                            {/* Match Status */}
-
-                            <MatchStatusComponent matchDetails={matchDetails} />
-                            
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-center text-xl">Loading match details...</p>
-                )}
-            </section>
-        </div>
-    )
+interface MatchPageProps {
+        id: number; 
 }
+const MatchPage : React.FC<MatchPageProps> = async ({ id }: MatchPageProps) => {
 
-export default MatchComponents
+    try {
+        const matchDetails = await fetchMatchById(id);
+
+        return (
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+                <MatchInfo matchDetails={matchDetails} />
+                <ScorePanel matchDetails={matchDetails} />
+                <BattingStatsComponent matchDetails={matchDetails} />
+                <BowlingStatsComponent matchDetails={matchDetails} />
+                <MatchStatusComponent matchDetails={matchDetails} />
+            </div>
+        );
+    } catch (error) {
+        const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
+
+        return (
+            <div className="text-center">
+                <h2 className="text-2xl font-semibold">Failed to Load Match Details</h2>
+                <p>{errorMessage}</p>
+            </div>
+        );
+    }
+};
+
+export default MatchPage;
