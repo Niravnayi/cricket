@@ -1,10 +1,9 @@
 import React from 'react'
-import { matchDetails } from './types/matchDetails'
-const BowlingStatsComponent = ({ matchDetails }: matchDetails) => {
+import { MatchDetails } from './types/matchDetails'
+const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDetails }) => {
+
     return (
-
-
-        <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-2 gap-6 p-6">
             <div>
                 <h3 className="text-lg font-semibold text-red-900">
                     Bowling Stats - {matchDetails.firstTeamName}
@@ -17,7 +16,7 @@ const BowlingStatsComponent = ({ matchDetails }: matchDetails) => {
                     .map((player) => (
                         <div
                             key={player.playerName}
-                            className="flex justify-between text-sm text-gray-600"
+                            className="flex justify-around text-sm text-gray-600"
                         >
                             <span>{player.playerName}</span>
                             <span>
@@ -55,7 +54,6 @@ const BowlingStatsComponent = ({ matchDetails }: matchDetails) => {
                     ))}
             </div>
         </div>
-
     )
 }
 
