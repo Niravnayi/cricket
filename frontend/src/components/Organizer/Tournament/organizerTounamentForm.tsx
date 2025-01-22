@@ -1,6 +1,6 @@
 import { useTournamentDetails } from '@/Hooks/useTournamentData';
 import React, { useState } from 'react';
-import { Input } from '../ui/input';
+import { Input } from '../../ui/input';
 
 const OrganizerTounamentForm = () => {
     const {

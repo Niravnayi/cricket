@@ -18,7 +18,6 @@ router.get('/', async (req: Request, res: Response) => {
 // Post a new batting stat
 router.post('/', async (req: Request, res: Response) => {
     const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal }: BattingStat = req.body;
-
     if (!scorecardId || !playerId || !teamId || !runs || !balls || !fours || !sixes || !strikeRate || !dismissal) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
@@ -68,7 +67,6 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal }: BattingStat = req.body;
-
     if (!scorecardId || !playerId || !teamId || !runs || !balls || !fours || !sixes || !strikeRate || !dismissal) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
