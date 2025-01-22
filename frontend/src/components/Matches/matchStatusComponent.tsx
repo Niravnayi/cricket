@@ -1,6 +1,6 @@
 import React from 'react'
-import { matchDetails } from './types/matchDetails'
-const MatchStatusComponent = ({matchDetails}:matchDetails) => {
+import { MatchDetails } from './types/matchDetails'
+const MatchStatusComponent : React.FC<{ matchDetails: MatchDetails }> = ({ matchDetails }) =>{ 
   return (
     <div>
         <div className="flex justify-between items-center p-6 border-t border-gray-200">
