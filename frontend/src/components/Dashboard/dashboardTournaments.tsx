@@ -1,122 +1,108 @@
-import { useDashboard } from '@/Hooks/useDashboard';
-import Link from 'next/link'
+// DashboardTournaments.tsx
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/app/server-actions/tournamentActions'; 
+import { Tournament } from '@/Types/tournament';
+import TournamentCard from '@/components/Dashboard/tournamentCard';
+import TournamentForm from '@/components/Forms/dashboardForm';
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
-import DashboardForm from '../Forms/dashboardForm';
-
+import { Team } from '@/Types/team';
 
 const DashboardTournaments = () => {
-  const [isEditing,setIsEditing] = useState(true)
-    const {
-        tournaments,                                                
-        handleDelete,     
-        tournamentName,
-        handleEdit,
-        showModal,
-        setShowModal,
-        handleCreateTournament,
-      } = useDashboard();
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
+  const [teamData, setTeamData] = useState<Team[]>([]);
 
+  // Fetch tournaments and team data
+  const fetchTournamentsData = async () => {
+    try {
+      const tournamentData = await fetchTournaments(1);
+      setTournaments(tournamentData);
 
+      const team = await fetchTeamData();
+      setTeamData(team);
+    } catch (error) {
+      console.error('Error fetching tournaments or team data:', error);
+    }
+    
+  };
+  fetchTournamentsData()
+  // Handle tournament deletion
+  const handleDelete = async (tournamentId: number) => {
+    try {
+      await deleteTournament(tournamentId);
+      setTournaments(tournaments.filter(tournament => tournament.tournamentId !== tournamentId));
+    } catch (error) {
+      console.error('Error deleting tournament:', error);
+    }
+  };
+
+  // Handle tournament editing
+  const handleEdit = (tournament: Tournament) => {
+    setCurrentTournament(tournament);
+    setIsEditing(true);
+    setShowModal(true);
+  };
+
+  // Handle tournament creation and updating
+  const handleCreateTournament = async (tournament: Tournament) => {
+    if (isEditing && currentTournament?.tournamentId) {
+      await updateTournament(currentTournament.tournamentId, tournament);
+    } else {
+      await createTournament(tournament);
+    }
+    setShowModal(false);
+    fetchTournamentsData();  // Re-fetch tournaments after creating/updating
+  };
+
+  // Modal trigger for creating a tournament
+  const handleCreateTrigger = () => {
+    setIsEditing(false);
+    setCurrentTournament(null);
+    setShowModal(true);
+  };
+console.log(tournaments)
   return (
     <div>
-        <section className="mb-8">
-          {tournaments.length > 0 ? (
-            tournaments.map((tournament) => (
-              <>
-              <Link key={tournament.tournamentId} href={`/organizer/tournament/${tournament.tournamentId}`}>
-                <div
-                  key={tournament.tournamentId}
-                  className="bg-white shadow-lg rounded-lg overflow-hidden mb-6"
-                >
-                  <div className="bg-[#009270] text-white p-10 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                    <h2 className="text-2xl font-bold">
-                      {tournament.tournamentName}
-                    </h2>
-                    <p className="text-sm">
-                      Organizer ID: {tournament.organizerId}
-                    </p>
-                    <div className="mt-4">
-                      <h3 className="text-lg font-semibold text-white">Teams:</h3>
-                      {tournament.teams.map((team) => (
-                        <p key={team.id} className="text-sm text-gray-300">
-                          {team.team.teamName}
-                        </p>
-                      ))}
-                      
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              <div className="flex justify-between">
-              <button
-                className="p-2 mt-5 w-24 text-white bg-red-600 hover:bg-red-700 transition-all"
-                onClick={() => handleDelete(tournament.tournamentId)}
-              >
-                Delete
-              </button>
+      <section className="mb-8">
+        {tournaments.length > 0 ? (
+          tournaments.map((tournament) => (
+            <TournamentCard
+              key={tournament.tournamentId}
+              tournament={tournament}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
+          ))
+        ) : (
+          <p>No tournaments found.</p>
+        )}
+      </section>
 
-              <Button
-                className="p-2 mt-5 w-24 text-black bg-blue-500 hover:bg-blue-600 transition-all"
-                onClick={() => {handleEdit(tournament); setIsEditing(true);}}
-              >
-                Edit
-              </Button>
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogTrigger asChild>
+          <Button onClick={handleCreateTrigger} className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]">
+            Create Tournament
+          </Button>
+        </DialogTrigger>
 
-     
-            </div>
-            </>
-            ))
-          ) : (
-            <p>No tournaments found.</p>
-          )}
-        </section>
-        <Dialog open={showModal} onOpenChange={setShowModal}>
-          
-          <DialogTrigger asChild>
-            <Button onClick={()=>{setIsEditing(false)}} className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]">
-              Create Tournament
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="p-8 max-w-lg">
-            <DialogTitle className="text-2xl font-semibold mb-4">
-              {isEditing ? "Edit Tournament" : "Create New Tournament"}
-            </DialogTitle>
-            <DialogDescription className="mb-6 text-gray-700">
-              Please fill in the tournament details.
-            </DialogDescription>
-            <div className="space-y-4">
-            {isEditing? <DashboardForm tournamentName={tournamentName}/>:<DashboardForm  tournamentName=""/>}
-            </div>
-            <DialogFooter>
-              <Button
-                variant="secondary"
-                onClick={() => setShowModal(false)}
-                className="px-6 py-2"
-              >
-                Close
-              </Button>
-              <Button
-                onClick={handleCreateTournament}
-                className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]"
-              >
-                {isEditing ? "Update Tournament" : "Create Tournament"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
+        <DialogContent className="p-8 max-w-lg">
+          <DialogTitle className="text-2xl font-semibold mb-4">{isEditing ? "Edit Tournament" : "Create New Tournament"}</DialogTitle>
+          <DialogFooter>
+             <TournamentForm 
+              tournamentData={currentTournament} 
+              teamData={teamData} 
+              onSubmit={handleCreateTournament} 
+            />
+            
+            <Button variant="secondary" onClick={() => setShowModal(false)} className="px-6 py-2">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
-}
+  );
+};
 
-export default DashboardTournaments
+export default DashboardTournaments;

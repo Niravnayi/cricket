@@ -1,10 +1,9 @@
-import { useTournamentDetails } from '@/Hooks/useTournamentData'
-import React from 'react'
-import { Input } from '../ui/input'
+import { useTournamentDetails } from '@/Hooks/useTournamentData';
+import React, { useState } from 'react';
+import { Input } from '../ui/input';
 
 const OrganizerTounamentForm = () => {
-
-    const{
+    const {
         teamA,
         setTeamA,
         teamB,
@@ -13,13 +12,36 @@ const OrganizerTounamentForm = () => {
         setVenue,
         date,
         setDate,
-        teams
-    } = useTournamentDetails()
+        teams,
+        handleCreateMatch 
+    } = useTournamentDetails();
+
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
+        e.preventDefault();
+        console.log(teamA)
+        if (!teamA || !teamB || !venue || !date) {
+            setError('Please fill out all fields before submitting.');
+            return;
+        }
+
+        setError('');
+
+        try {
+            await handleCreateMatch({ teamA, teamB, venue, date });
+            alert('Match created successfully!');
+        } catch (error) {
+            // Handle API errors
+            console.error('Failed to create match:', error);
+            setError('Failed to create match. Please try again.');
+        }
+    };
+
     return (
         <div>
-            <form>
-                <div className="w-1/2">
-
+            <form onSubmit={handleSubmit}>
+                <div className="w-full">
                     <label className="block text-sm font-semibold text-gray-600 mb-2">
                         Team A
                     </label>
@@ -38,11 +60,10 @@ const OrganizerTounamentForm = () => {
                             </option>
                         ))}
                     </select>
-
                 </div>
 
                 <div className="text-lg font-bold text-gray-600">Vs</div>
-                <div className="w-1/2">
+                <div className="w-full">
                     <label className="block text-sm font-semibold text-gray-600 mb-2">
                         Team B
                     </label>
@@ -61,13 +82,32 @@ const OrganizerTounamentForm = () => {
                             </option>
                         ))}
                     </select>
-                    <Input type="text" placeholder="Enter Venue" className="p-3 mt-3" onChange={(e) => setVenue(e.target.value)} value={venue} />
-                    <Input type="datetime-local" placeholder="Enter Date" className="p-3 mt-3" onChange={(e) => setDate(e.target.value)} value={date} />
+
+                    <Input
+                        type="text"
+                        placeholder="Enter Venue"
+                        className="p-3 mt-3"
+                        onChange={(e) => setVenue(e.target.value)}
+                        value={venue}
+                    />
+
+                    <Input
+                        type="datetime-local"
+                        placeholder="Enter Date"
+                        className="p-3 mt-3"
+                        onChange={(e) => setDate(e.target.value)}
+                        value={date}
+                    />
                 </div>
+
+                {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+
+                <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded-md">
+                    Submit
+                </button>
             </form>
-
         </div>
-    )
-}
+    );
+};
 
-export default OrganizerTounamentForm
+export default OrganizerTounamentForm;

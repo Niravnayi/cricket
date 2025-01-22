@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index'
+// import { io } from '../index';
 
 interface Team {
     teamName: string;
@@ -86,6 +87,7 @@ router.post('/', async (req: Request, res: Response) => {
             },
         });
 
+        // io.emit('teamCreated', team);
         res.status(201).json({ message: 'Team created successfully', team });
     } catch (error) {
         console.error('Error creating team:', error);
@@ -204,6 +206,7 @@ router.put('/:teamId', async (req: Request, res: Response) => {
             });
         }
 
+        // io.emit('teamUpdated', updatedTeam);
         res.status(200).json({ message: 'Team updated successfully', team: updatedTeam });
     } catch (error) {
         console.error('Error updating team:', error);
@@ -244,13 +247,14 @@ router.delete('/:teamId', async (req: Request, res: Response) => {
         });
 
         // Delete the team itself
-        await prisma.teams.delete({
+        const deletedTeam = await prisma.teams.delete({
             where: {
                 teamId: parseInt(teamId),
             },
         });
 
-        res.status(200).json({ message: 'Team deleted successfully' });
+        // io.emit('teamDeleted', deletedTeam);
+        res.status(200).json({ message: 'Team deleted successfully', deletedTeam });
     } catch (error) {
         console.error('Error deleting team:', error);
         res.status(500).json({ error: 'Failed to delete team' });

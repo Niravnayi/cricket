@@ -40,39 +40,39 @@ export const useDashboard = () => {
     fetchData();
   }, [id]);
 
-  const handleCreateTournament = async () => {
+  const handleCreateTournament = async ({ tournamentName, id, teams }: { tournamentName: string, id: number | null, teams: number[] }) => {
     try {
-      setIsEditing(false)
-      const newTournament = {
-        tournamentName,
-        organizerId: id ? parseInt(id as string) : 0,
-        teamIds: teams,
-      };
+        setIsEditing(false); // Reset edit mode
+        const newTournament = {
+            tournamentName,
+            organizerId: id ? parseInt(id as unknown as string) : 0, // Use current id if editing
+            teamIds: teams,
+        };
 
-      if (isEditing && currentTournamentId !== null) {
-        // Update the existing tournament
-        await axiosClient.put(
-          `/tournaments/${currentTournamentId}`,
-          newTournament
-        );
-      } else {
-        // Create a new tournament
-        await axiosClient.post(`/tournaments/`, newTournament);
-      }
+        if (isEditing && currentTournamentId !== null) {
+            // Update the existing tournament
+            await axiosClient.put(`/tournaments/${currentTournamentId}`, newTournament);
+        } else {
+            // Create a new tournament
+            await axiosClient.post(`/tournaments/`, newTournament);
+        }
 
-      const updatedData = await axiosClient.get(
-        `/organizers/tournaments/${id}`
-      );
-      setTournaments(updatedData.data);
-      setShowModal(false);
-      setTournamentName("");
-      setTeams([]);
-      setIsEditing(false);
-      setCurrentTournamentId(null);
+        // After creation/update, fetch updated tournament data
+        const updatedData = await axiosClient.get(`/organizers/tournaments/${id}`);
+        setTournaments(updatedData.data);
+
+        // Reset form and modal state
+        setShowModal(false);
+        setTournamentName("");
+        setTeams([]);
+        setIsEditing(false);
+        setCurrentTournamentId(null);
+
     } catch (error) {
-      console.error("Error creating/updating tournament:", error);
+        console.error("Error creating/updating tournament:", error);
     }
-  };
+};
+
 
   const handleDelete = async (tournamentId: number) => {
     try {
@@ -99,6 +99,7 @@ export const useDashboard = () => {
 
     console.log(tournament)
     setTournamentName(tournament.tournamentName);
+    if(tournament.tournamentId)
     setCurrentTournamentId(tournament.tournamentId);
     setIsEditing(true);
     setShowModal(true);
@@ -117,5 +118,6 @@ export const useDashboard = () => {
     handleDelete,
     handleTeamSelect,
     handleEdit,
+    currentTournamentId,
   };
 };

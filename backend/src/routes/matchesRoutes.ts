@@ -1,18 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
-
-interface Match {
-    tournamentId: number;
-    firstTeamId: number;
-    firstTeamName: string;
-    secondTeamId: number;
-    secondTeamName: string;
-    dateTime: Date;
-    venue: string;
-    isLive: boolean;
-    result: string;
-    isCompleted: boolean
-}
+// import { io } from '../index';
+import { Match } from '../types/matchesRoute';
 
 const router = express.Router();
 
@@ -20,7 +9,9 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const matches = await prisma.matches.findMany({
-            include: { scorecard: true },
+            include: { 
+                scorecard: true 
+            },
         });
         res.json(matches);
     } catch (error) {
@@ -38,8 +29,8 @@ router.get('/:id', async (req: Request, res: Response) => {
             },
             include: { 
                 scorecard: {
-                    include: { battingStats: true, bowlingStats:true, extras: true },
-                } ,               
+                    include: { battingStats: true, bowlingStats: true, extras: true }
+                } 
             },
         });
         res.json(match);
@@ -48,8 +39,10 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 });
 
+// Create a new match
 router.post('/', async (req: Request, res: Response) => {
     const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
+    console.log(firstTeamId,secondTeamId)
     try {
         // Fetch team names for the given team IDs
         const [firstTeam, secondTeam] = await Promise.all([
@@ -62,10 +55,14 @@ router.post('/', async (req: Request, res: Response) => {
                 select: { teamName: true },
             }),
         ]);
+
+        // Check if teams were found
         if (!firstTeam || !secondTeam) {
             res.status(404).json({ error: 'One or both teams not found' });
             return 
         }
+
+        // Create the match with team names dynamically fetched
         const newMatch = await prisma.matches.create({
             data: {
                 tournamentId,
@@ -81,6 +78,7 @@ router.post('/', async (req: Request, res: Response) => {
             },
         });
 
+        // io.emit('matchCreated', newMatch);
         res.status(201).json(newMatch);
     } catch (error) {
         console.error(error);
@@ -93,7 +91,9 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
+
     try {
+        // Fetch team names for the given team IDs
         const [firstTeam, secondTeam] = await Promise.all([
             prisma.teams.findUnique({
                 where: { teamId: firstTeamId },
@@ -104,10 +104,14 @@ router.put('/:id', async (req: Request, res: Response) => {
                 select: { teamName: true },
             }),
         ]);
+
+        // Check if teams were found
         if (!firstTeam || !secondTeam) {
             res.status(404).json({ error: 'One or both teams not found' });
             return 
         }
+
+        // Update the match with new details
         const updatedMatch = await prisma.matches.update({
             where: { matchId: parseInt(id) },
             data: {
@@ -121,6 +125,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             },
         });
 
+        // io.emit('matchUpdated', updatedMatch);
         res.json(updatedMatch);
     } catch (error) {
         console.error(error);
@@ -133,12 +138,14 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        await prisma.matches.delete({
+        const deletedMatch = await prisma.matches.delete({
             where: { 
                 matchId: parseInt(id) 
             },
         });
-        res.status(204).send();
+        
+        // io.emit('matchDeleted', deletedMatch);
+        res.status(200).json({message: "Match deleted successfully", deletedMatch});
     } catch (error) {
         res.status(500).json({ error: 'Error deleting match' });
     }

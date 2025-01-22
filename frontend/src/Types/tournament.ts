@@ -2,10 +2,11 @@ import { Team } from "./team";
 import { Match } from "./match";
 
 export interface Tournament {
-  tournamentId: number;
+  tournamentId?: number;
   tournamentName: string;
   organizerId: number;
-  teams: Team[];
-  matches: Match[]
+  teams?: Team[];
+  teamIds:number[]
+  matches?: Match[]
 }
 

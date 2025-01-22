@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index';
 import { Tournament } from '../types/tournamentsRoute';
+// import { io } from '../index';
 
 const router = express.Router();
 
@@ -35,11 +36,11 @@ router.get('/:id', async (req: Request, res: Response) => {
             where: { tournamentId: Number(id) },
             include: {
                 teams: {
-                    include: { team: true }
+                    include: { team: true },
                 },
                 matches: {
-                    include: {scorecard:true}
-                }
+                    include: { scorecard: true },
+                },
             },
         });
 
@@ -90,6 +91,7 @@ router.post('/', async (req: Request, res: Response) => {
             },
         });
 
+        // io.emit('tournamentCreated', tournament);
         res.status(201).json(tournament);
     } catch (err) {
         console.error('Error creating tournament:', err);
@@ -154,6 +156,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             });
         }
 
+        // io.emit('tournamentUpdated', updatedTournament);
         res.status(200).json({ message: 'Tournament updated successfully', tournament: updatedTournament });
     } catch (err) {
         console.error('Error updating tournament:', err);
@@ -188,17 +191,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
         await prisma.tournamentTeams.deleteMany({
             where: { tournamentId },
         });
+
         await prisma.battingStats.deleteMany({
-            where: { scorecard: {match: { tournamentId } }}, // Delete scorecards related to matches from this tournament
+            where: { scorecard: {match: { tournamentId } }}, 
         });
+    
         await prisma.bowlingStats.deleteMany({
-            where: { scorecard: {match: { tournamentId } }}, // Delete scorecards related to matches from this tournament
+            where: { scorecard: {match: { tournamentId } }}, 
         });
+
         await prisma.extras.deleteMany({
-            where: { scorecard: {match: { tournamentId } }}, // Delete scorecards related to matches from this tournament
+            where: { scorecard: {match: { tournamentId } }}, 
         });
         await prisma.scorecard.deleteMany({
-            where: { match: { tournamentId } }, // Delete scorecards related to matches from this tournament
+            where: { match: { tournamentId } },
         });
 
         await prisma.matches.deleteMany({
@@ -206,16 +212,19 @@ router.delete('/:id', async (req: Request, res: Response) => {
         });
 
         // Finally, delete the tournament
-        await prisma.tournaments.delete({
+        const deletedTournament = await prisma.tournaments.delete({
             where: { tournamentId },
         });
 
-        res.status(200).json({ message: 'Tournament and related data deleted successfully' });
+        // io.emit('tournamentDeleted', deletedTournament);
+        res.status(200).json({ message: 'Tournament and related data deleted successfully', deletedTournament });
     } catch (err) {
         console.error('Error deleting tournament:', err);
         res.status(500).json({ error: 'Failed to delete tournament' });
     }
 });
+
+
 // Remove a team from a tournament
 // router.delete('/:tournamentId/teams/:teamId', async (req: Request, res: Response) => {
 //     const { tournamentId, teamId } = req.params;

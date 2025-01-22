@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://neondb_owner:wzr0ybhR1LnO@ep-calm-union-a1c24h8e-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+  url      = env("DATABASE_URL")
 }
 
 model users {
@@ -58,10 +58,18 @@ model players {
   playerId   Int     @id @default(autoincrement())
   playerName String
   playerAge  Int
+  isCaptain  Boolean @default(false)
+  playerRole playerRole
   teams      teamPlayer[]
 
   @@unique([playerId, playerName])
   @@index([playerName])
+}
+
+enum playerRole {
+  BATSMAN
+  BOWLER
+  ALLROUNDER
 }
 
 model teamPlayer {
@@ -88,7 +96,8 @@ model matches {
   result             String
   isLive             Boolean
   isCompleted        Boolean
-  scorecard          scorecard?   @relation("MatchScorecard") 
+  scorecard          scorecard?   @relation("MatchScorecard")
+  matchState         matchState?  
 }
 
 model scorecard {
@@ -145,3 +154,14 @@ model bowlingStats {
   economyRate      Float
 }
 
+model matchState {
+  id               Int      @id @default(autoincrement())
+  matchId          Int
+  currentBatter1Id Int?
+  currentBatter2Id Int?
+  currentBowlerId  Int?
+
+  match            matches  @relation(fields: [matchId], references: [matchId])
+
+  @@unique([matchId])  // Ensures one entry per match
+}

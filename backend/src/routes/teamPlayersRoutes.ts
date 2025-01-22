@@ -1,5 +1,6 @@
 import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
+// import { io } from '../index';
 
 const router = express.Router();
 
@@ -33,6 +34,7 @@ router.post('/', async (req: Request, res: Response) => {
         const entries = playerIds.map((playerId: number) => ({ teamId, playerId, playerName }));
         const teamPlayers = await prisma.teamPlayer.createMany({ data: entries });
 
+        // io.emit('teamPlayersCreated', teamPlayers);
         res.status(201).json({ message: 'Players added to team successfully', teamPlayers });
     } catch (error) {
         console.error('Error adding players to team:', error);
@@ -51,6 +53,7 @@ router.put('/:teamId/:playerId', async (req: Request, res: Response) => {
             data: { teamId: updatedTeamId, playerId: updatedPlayerId, playerName: updatedPlayerName },
         });
 
+        // io.emit('teamPlayerUpdated', teamPlayer);
         res.status(200).json({ message: 'Player updated in team successfully', teamPlayer });
     } catch (error) {
         console.error('Error updating player in team:', error);
@@ -67,6 +70,7 @@ router.delete('/:teamId/:playerId', async (req: Request, res: Response) => {
             where: { teamId_playerId: { teamId: Number(teamId), playerId: Number(playerId) } },
         });
 
+        // io.emit('teamPlayerRemoved', teamPlayer);
         res.status(200).json({ message: 'Player removed from team successfully', teamPlayer });
     } catch (error) {    
         console.error('Error removing player from team:', error);

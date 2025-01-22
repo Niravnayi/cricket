@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
     Dialog,
     DialogTrigger,
@@ -12,22 +12,19 @@ import { useTournamentDetails } from '@/Hooks/useTournamentData';
 import OrganizerTounamentForm from '@/components/Forms/organizerTounamentForm';
 
 const TournamentDialog = () => {
-    const[showModal,setShowModal] = useState(false)
-    const {
-        
-        
-        selectedMatch,
-        handleUpdateMatch,
-        teamA,
-        teamB
-    } = useTournamentDetails()
     
+    const {
+        selectedMatch,
+        showModal,
+        setShowModal,
+    } = useTournamentDetails()
+    console.log(showModal)
 
     return (
         <div>
             <Dialog open={showModal} onOpenChange={setShowModal}>
                 <DialogTrigger asChild>
-                    <Button onClick={()=>{setShowModal(true)}} className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]">
+                    <Button  className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]">
                         Create Match
                     </Button>
                 </DialogTrigger>
@@ -52,12 +49,6 @@ const TournamentDialog = () => {
                             className="px-6 py-2"
                         >
                             Close
-                        </Button>
-                        <Button
-                            onClick={selectedMatch ? handleUpdateMatch : handleUpdateMatch}
-                            className={`${teamA === teamB ? 'disabled bg-black' : 'bg-[#009270]'} px-6 py-2 text-white rounded-md hover:bg-[#007f5f]`}
-                        >
-                            {selectedMatch ? "Update Match" : "Create Match"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

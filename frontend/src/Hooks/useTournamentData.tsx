@@ -66,13 +66,13 @@ export const useTournamentDetails = () => {
       console.error("Error deleting tournament:", error);
     }
   };
-  const liveMatches = tournament?.matches.filter((match) => match.isLive) || [];
+  const liveMatches = tournament?.matches?.filter((match) => match.isLive) || [];
   const scheduledMatches =
-    tournament?.matches.filter(
+    tournament?.matches?.filter(
       (match) => !match.isLive && !match.isCompleted
     ) || [];
   const completedMatches =
-    tournament?.matches.filter((match) => match.isCompleted) || [];
+    tournament?.matches?.filter((match) => match.isCompleted) || [];
     const [teamA, setTeamA] = useState("");
     const [teamB, setTeamB] = useState("");
     const [venue, setVenue] = useState("");
@@ -84,10 +84,10 @@ export const useTournamentDetails = () => {
       return team ? team.teamId : null;
     };
   
-    const handleCreateMatch = async () => {
+    const handleCreateMatch = async ({ teamA, teamB, venue, date }: { teamA: string; teamB: string; venue: string; date: string }) => {
       const teamAId = getTeamIdByName(teamA);
       const teamBId = getTeamIdByName(teamB);
-      
+      console.log(teamA)
       const response = await axiosClient.post('/matches', {
         tournamentId: tournament?.tournamentId,
         firstTeamId: teamAId,
@@ -115,7 +115,7 @@ export const useTournamentDetails = () => {
       });
   
       if (response?.status === 200) {
-        setShowModal(false);
+      
         setSelectedMatch(null); 
       }
     };
@@ -167,8 +167,8 @@ export const useTournamentDetails = () => {
                 </div>
               </li>
             </Link>
-            <Button onClick={() => {openEditModal(match);setShowModal(true)}} className="justify-end flex">Edit Match</Button>
-            <Button onClick={() => handleDelete(match.matchId)} className="justify-end flex">Delete Match</Button>
+            <Button onClick={() => {openEditModal(match);setShowModal(true)}} className="justify-end flex mt-5">Edit Match</Button>
+            <Button onClick={() => handleDelete(match.matchId)} className="justify-end flex mt-5">Delete Match</Button>
           </div>
         ))}
       </ul>

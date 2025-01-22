@@ -1,6 +1,6 @@
 export interface Extras {
     scorecardId: number;
-    teamName: string;
+    teamId: number;
     byes: number;
     legByes: number;
     wides: number;

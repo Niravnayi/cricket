@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index'
 import bcrypt from 'bcrypt';
 import { Organizer } from '../types/organizersRoute';
+// import { io } from '../index';
 
 const router = express.Router();
 
@@ -34,6 +35,8 @@ router.post('/', async (req: Request, res: Response) => {
                  organizerPassword: hashedPassword
             }
         });
+
+        // io.emit('newOrganizer', organizer);
         res.status(201).json(organizer);
     } catch (err) {
         console.error('Error fetching users:', err);
@@ -68,6 +71,8 @@ router.put('/:id', async (req: Request, res: Response) => {
                 organizerPassword: hashedPassword,
             },
         });
+
+        // io.emit('updateOrganizer', updatedOrganizer);
         res.status(200).json(updatedOrganizer);
     } catch (err) {
         console.error('Error updating organizer:', err);
@@ -90,6 +95,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
                 organizerId: Number(id),
             },
         });
+
+        // io.emit('deleteOrganizer', deletedOrganizer);
         res.status(200).json(deletedOrganizer);
     } catch (err) {
         console.error('Error deleting organizer:', err);
@@ -114,8 +121,8 @@ router.get('/tournaments/:organizerId', async (req: Request, res: Response) => {
             include: {
                 teams: {
                     include: { team: true },
-                },
-            },
+                }
+            }    
         });
 
         if (tournaments.length === 0) {
