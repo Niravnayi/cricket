@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { useTournamentDetails } from '@/Hooks/useTournamentData';
-import OrganizerTounamentForm from '@/components/Forms/organizerTounamentForm';
+import OrganizerTounamentForm from '@/components/Organizer/Tournament/organizerTounamentForm';
 
 const TournamentDialog = () => {
     

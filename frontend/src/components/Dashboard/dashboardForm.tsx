@@ -5,7 +5,7 @@ import { Tournament } from '@/Types/tournament';
 import { Team } from '@/Types/team';
 
 interface TournamentFormProps {
-  tournamentData?: Tournament;
+  tournamentData: Tournament | null;
   teamData: Team[];
   onSubmit: (tournament: Tournament) => void;
 }
