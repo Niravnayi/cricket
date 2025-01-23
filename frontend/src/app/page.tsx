@@ -1,8 +1,10 @@
 import React from 'react'
+import SignOutButton from './(auth)/signout/page'
 
 const page = () => {
   return (
-    <div>page</div>
+    <div><SignOutButton/></div>
+    
   )
 }
 
