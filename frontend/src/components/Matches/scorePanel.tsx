@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { MatchDetails, Scorecard } from "./types/matchDetails";
-import { setScoreCard } from "@/server-actions/matchesActions";
+import React, { useEffect, useRef, useState } from "react";
+import { MatchDetails, PlayerStats, Scorecard } from "./types/matchDetails";
 import socket from "@/utils/socket";
 
 interface ScorePanelProps {
@@ -15,6 +14,33 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   fetchMatchDetails,
 }) => {
   const isScorecardCreatedRef = useRef(false); // Tracks if scorecard creation has occurred
+  const [teamAScore, setTeamAScore] = useState(0);
+  const [teamBScore, setTeamBScore] = useState(0);
+
+  const calculateTeamScores = () => {
+    try {
+      const { scorecard } = matchDetails;
+
+      if (scorecard && scorecard.battingStats) {
+        // Filter players for each team
+        const teamAPlayers = scorecard.battingStats.filter(
+          (player: PlayerStats) => player.teamName === matchDetails.firstTeamName
+        );
+        const teamBPlayers = scorecard.battingStats.filter(
+          (player: PlayerStats) => player.teamName === matchDetails.secondTeamName
+        );
+
+        // Calculate total runs for each team
+        const teamARuns = teamAPlayers.reduce((sum, player) => sum + player.runs, 0);
+        const teamBRuns = teamBPlayers.reduce((sum, player) => sum + player.runs, 0);
+
+        setTeamAScore(teamARuns);
+        setTeamBScore(teamBRuns);
+      }
+    } catch (error) {
+      console.error("Error calculating team scores:", error);
+    }
+  };
 
   useEffect(() => {
     const manageScorecard = async () => {
@@ -22,7 +48,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
 
       // Check for scorecard creation condition
       if (!matchDetails.scorecard && matchDetails.isLive && !isScorecardCreatedRef.current) {
-        // Create the initial scorecard
+        // Create the initial scorecard if not already created
         const newScorecard: Scorecard = {
           teamAScore: 0,
           teamBScore: 0,
@@ -32,11 +58,8 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
           teamBOvers: 0,
         };
 
-        // Emit socket event and update the backend
+        // Emit socket event and mark scorecard as created
         socket.emit("createScorecard", { matchId, Scorecard: newScorecard });
-        await setScoreCard({ matchId, Scorecard: newScorecard });
-
-        // Mark the scorecard as created
         isScorecardCreatedRef.current = true;
 
         // Fetch updated match details
@@ -47,15 +70,20 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
     if (isOrganizer && matchDetails.isLive) {
       manageScorecard();
     } else {
-      // Reset the ref if the match goes offline or when a new match is created
+      // Reset the ref if the match goes offline or a new match is created
       isScorecardCreatedRef.current = false;
     }
 
+    // Calculate scores whenever match details change
+    calculateTeamScores();
+
     // Socket event listeners for real-time updates
-    socket.on("scoreCreate", fetchMatchDetails);
+    socket.on("scoreUpdate", fetchMatchDetails); // Trigger match details update
+    socket.on("battingStatsUpdate", calculateTeamScores); // Recalculate scores on batting stats update
 
     return () => {
-      socket.off("scoreCreate", fetchMatchDetails);
+      socket.off("scoreUpdate", fetchMatchDetails);
+      socket.off("battingStatsUpdate", calculateTeamScores);
     };
   }, [matchDetails, isOrganizer, fetchMatchDetails]);
 
@@ -66,23 +94,17 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
         <h3 className="text-xl font-semibold text-blue-900">
           {matchDetails.firstTeamName}
         </h3>
-        {matchDetails.scorecard && matchDetails.isLive ? (
+        {matchDetails.isLive ? (
           <div>
             <p className="text-lg font-semibold text-gray-700">
-              {matchDetails.scorecard.teamAScore}/{matchDetails.scorecard.teamAWickets}
+              {teamAScore}/{matchDetails.scorecard?.teamAWickets || 0}
             </p>
             <p className="text-sm text-gray-500">
-              Overs: {matchDetails.scorecard.teamAOvers}
+              Overs: {matchDetails.scorecard?.teamAOvers || 0}
             </p>
           </div>
         ) : (
-          <>
-            {!matchDetails.isLive ? (
-              <p className="text-sm text-gray-500">Match has not started yet</p>
-            ) : (
-              <p className="text-sm text-gray-500"></p>
-            )}
-          </>
+          <p className="text-sm text-gray-500">Match has not started yet</p>
         )}
       </div>
 
@@ -91,23 +113,17 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
         <h3 className="text-xl font-semibold text-blue-900">
           {matchDetails.secondTeamName}
         </h3>
-        {matchDetails.scorecard && matchDetails.isLive ? (
+        {matchDetails.isLive ? (
           <div>
             <p className="text-lg font-semibold text-gray-700">
-              {matchDetails.scorecard.teamBScore}/{matchDetails.scorecard.teamBWickets}
+              {teamBScore}/{matchDetails.scorecard?.teamBWickets || 0}
             </p>
             <p className="text-sm text-gray-500">
-              Overs: {matchDetails.scorecard.teamBOvers}
+              Overs: {matchDetails.scorecard?.teamBOvers || 0}
             </p>
           </div>
         ) : (
-          <>
-            {!matchDetails.isLive ? (
-              <p className="text-sm text-gray-500">Match has not started yet</p>
-            ) : (
-              <p className="text-sm text-gray-500"></p>
-            )}
-          </>
+          <p className="text-sm text-gray-500">Match has not started yet</p>
         )}
       </div>
     </div>

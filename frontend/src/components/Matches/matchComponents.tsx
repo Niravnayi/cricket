@@ -20,7 +20,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
     const data = await fetchMatchById(id);
     setMatchDetails(data);
   };
-
+  
   useEffect(() => {
     fetchMatchDetails();
 
@@ -29,12 +29,12 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       console.log("Real-time match update received:", updatedMatch);
       setMatchDetails(updatedMatch);
     });
-
+    
     return () => {
       socket.off("matchUpdated");
     };
   }, [id]);
-
+  
   if (!matchDetails) {
     return (
       <div>
@@ -42,6 +42,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       </div>
     );
   }
+  console.log(matchDetails)
 
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden">

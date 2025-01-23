@@ -1,8 +1,9 @@
-import React, {  useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axiosClient from '@/utils/axiosClient';
-import socket from '@/utils/socket'; // Import socket
+import socket from '@/utils/socket';
 import { getMatchState, getBattingStats } from '@/server-actions/matchesActions';
 import { MatchDetails } from './types/matchDetails';
+
 interface PlayerStats {
   dismissal: string;
   sixes: number;
@@ -26,44 +27,65 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [pendingRuns, setPendingRuns] = useState<number>(0);
   const [battingStats, setBattingStats] = useState<PlayerStats[]>([]);
-  // const [firstBatter,setFirstBatter] = useState<PlayerStats>()
-  // const [secondBatter,setSecondBatter] = useState<PlayerStats>()
 
   useEffect(() => {
-    async function getTeamState() {
-      console.log(matchDetails.matchId)
-      const matchId = matchDetails.matchId
-
-      const response = await getMatchState({ matchId })
-      console.log(response)
-
-      const battingStateResponse = await getBattingStats()
-      console.log(battingStateResponse)
-
-      const firstBatter = battingStateResponse.find((playerId: number) => playerId === response.Batter2Id);
-      const secondBatter = battingStateResponse.find((playerId: number) => playerId === response.Batter2Id);
-      console.log(secondBatter,firstBatter)
-      if (firstBatter && secondBatter) {
-        setBattingStats([firstBatter, secondBatter])
+    async function fetchBattingStats() {
+      try {
+        const matchId = matchDetails.matchId;
+  
+        // Fetch match state
+        const matchState = await getMatchState({ matchId });
+        console.log('Match state:', matchState,matchState.batter1Id,matchState.batter2Id);
+        
+        if (!matchState || !matchState.batter1Id || !matchState.batter2Id) {
+          console.warn('Match state does not contain valid batter IDs.');
+          return;
+        }
+  
+        // Fetch batting stats
+        const battingStateResponse: PlayerStats[] = await getBattingStats();
+        console.log('Batting stats:', battingStateResponse);
+  
+        if (!Array.isArray(battingStateResponse)) {
+          console.error('Batting stats response is not an array.');
+          return;
+        }
+  
+        // Find the batters by playerId
+        const firstBatter = battingStateResponse.find(
+          (player) => player.playerId === matchState.batter1Id
+        );
+        const secondBatter = battingStateResponse.find(
+          (player) => player.playerId === matchState.batter2Id
+        );
+        console.log(firstBatter,secondBatter)
+  
+        if (firstBatter && secondBatter) {
+          setBattingStats([firstBatter, secondBatter]);
+        } else {
+          console.warn('No matching players found for the given batter IDs.');
+        }
+      } catch (error) {
+        console.error('Error fetching batting stats or match state:', error);
       }
-      console.log(battingStats)
     }
-    getTeamState()
+  
+    fetchBattingStats();
+  
     socket.on('matchStateFetched', (updatedMatchState: MatchDetails) => {
       if (updatedMatchState.scorecard?.battingStats) {
-        // setBattingStats(updatedMatchState.battingStats);
+        setBattingStats(updatedMatchState.scorecard.battingStats);
       }
     });
-    console.log(battingStats)
+  
     return () => {
-      socket.off('matchStateUpdate'); // Clean up on component unmount
+      socket.off('matchStateFetched');
     };
-  }, []);
-
-
-
+  }, [matchDetails]);
+  
 
   const handleEditClick = (player: PlayerStats) => {
+    console.log(player,matchDetails.firstTeamId)
     setEditingPlayer(player);
     setPendingRuns(0);
   };
@@ -73,39 +95,43 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
       setPendingRuns(pendingRuns + runs);
     }
   };
-  console.log(battingStats)
+
   const handleSaveClick = async () => {
     if (editingPlayer) {
-      if (!editingPlayer.battingStatsId) {
-        console.error('Batting stats ID is undefined. Cannot update stats.');
-        return;
-      }
-
       const updatedRuns = editingPlayer.runs + pendingRuns;
       const updatedBalls = editingPlayer.balls + 1;
-
+      console.log(editingPlayer)
       try {
         const response = await axiosClient.put(`/batting-stats/${editingPlayer.battingStatsId}`, {
           scorecardId: editingPlayer.scorecardId,
           playerId: editingPlayer.playerId,
-          teamId: editingPlayer.teamId,
+          teamId: matchDetails.firstTeamId,
           runs: updatedRuns,
           balls: updatedBalls,
           fours: editingPlayer.fours,
           sixes: editingPlayer.sixes,
-          strikeRate: ((updatedRuns / updatedBalls) * 100).toFixed(2),
+          strikeRate: parseInt(((updatedRuns / updatedBalls) * 100).toFixed(2),),
           dismissal: editingPlayer.dismissal,
         });
 
-        console.log('Updated successfully', response.data);
+        console.log('Updated successfully:', response.data);
 
-        // Emit the updated match state to the server so other clients can listen
         socket.emit('updateMatchState', {
           matchId: matchDetails.matchId,
-          battingStats: response.data, // Assuming the server sends back updated batting stats
+          battingStats: response.data,
         });
 
         setEditingPlayer(null);
+        setPendingRuns(0);
+
+        // Update batting stats locally
+        setBattingStats((prevStats) =>
+          prevStats.map((player) =>
+            player.battingStatsId === editingPlayer.battingStatsId
+              ? { ...player, runs: updatedRuns, balls: updatedBalls }
+              : player
+          )
+        );
       } catch (error) {
         console.error('Error updating batting stats:', error);
       }
@@ -132,7 +158,7 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
                 <span>SR: {(player.runs / player.balls) * 100}</span>
                 <button
                   className="ml-2 px-2 py-1 text-white bg-blue-500 rounded"
-                  onClick={() => handleEditClick({ ...player, id: player.battingStatsId })}
+                  onClick={() => handleEditClick(player)}
                 >
                   Edit
                 </button>
