@@ -5,9 +5,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axiosClient from "@/utils/axiosClient";
 import { BattingStats, MatchDetails } from '@/app/organizer/matches/types/matchType';
-import { fetchMatchDetails } from '@/server-actions/matchActions'; 
+import { fetchMatchDetails } from '@/server-actions/organizerMatchActions'; 
 import { fetchTeamData } from '@/server-actions/tournamentActions';
-import { Team } from '@/Types/team';
+import { Team } from '@/components/Matches/types/matchDetails';
 
 interface Id {
   id: number;
@@ -32,7 +32,7 @@ const MatchPage = ({ id }: Id) => {
 
   if (loading) {
     fetchData();  // Call the data fetching function when the component renders
-    return <p>Loading match details...</p>;  // Show loading text while fetching
+    return <span className='loader'></span>;  // Show loading text while fetching
   }
 
   if (!match) {

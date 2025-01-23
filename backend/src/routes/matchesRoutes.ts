@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
-// import { io } from '../index';
+import { io } from '../index';
 import { Match } from '../types/matchesRoute';
 
 const router = express.Router();
@@ -14,9 +14,11 @@ router.get('/', async (req: Request, res: Response) => {
             },
         });
         res.json(matches);
+        io.emit('matchDetails fetched',matches)
     } catch (error) {
         res.status(500).json({ error: 'Error fetching matches' });
     }
+   
 });
 
 // Get a specific match
@@ -33,8 +35,10 @@ router.get('/:id', async (req: Request, res: Response) => {
                 } 
             },
         });
+        io.emit('fetchMatch', match);
         res.json(match);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error fetching match' });
     }
 });
@@ -64,6 +68,11 @@ router.post('/', async (req: Request, res: Response) => {
 
         // Create the match with team names dynamically fetched
         const newMatch = await prisma.matches.create({
+            include: { 
+                scorecard: {
+                    include: { battingStats: true, bowlingStats: true, extras: true }
+                } 
+            },
             data: {
                 tournamentId,
                 firstTeamId,
@@ -73,12 +82,12 @@ router.post('/', async (req: Request, res: Response) => {
                 venue,
                 dateTime: new Date(dateTime),
                 result: 'Pending',
-                isLive: false,
+                isLive: false, 
                 isCompleted: false,
             },
         });
 
-        // io.emit('matchCreated', newMatch);
+        io.emit('matchCreated', newMatch);
         res.status(201).json(newMatch);
     } catch (error) {
         console.error(error);
@@ -90,8 +99,7 @@ router.post('/', async (req: Request, res: Response) => {
 // Update a match
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
-
+    const { tournamentId, firstTeamId, secondTeamId, venue, dateTime, isLive }: Match = req.body
     try {
         // Fetch team names for the given team IDs
         const [firstTeam, secondTeam] = await Promise.all([
@@ -113,6 +121,11 @@ router.put('/:id', async (req: Request, res: Response) => {
 
         // Update the match with new details
         const updatedMatch = await prisma.matches.update({
+            include: { 
+                scorecard: {
+                    include: { battingStats: true, bowlingStats: true, extras: true }
+                } 
+            },
             where: { matchId: parseInt(id) },
             data: {
                 tournamentId,
@@ -122,10 +135,11 @@ router.put('/:id', async (req: Request, res: Response) => {
                 secondTeamName: secondTeam.teamName, 
                 venue,
                 dateTime: new Date(dateTime),
+                isLive
             },
         });
 
-        // io.emit('matchUpdated', updatedMatch);
+        io.emit('matchUpdated', updatedMatch);
         res.json(updatedMatch);
     } catch (error) {
         console.error(error);

@@ -32,7 +32,7 @@ const TournamentComponent = () => {
                 Teams:
               </h3>
               <ul className="list-disc list-inside mt-2 text-gray-700 group-hover:text-gray-900">
-                {tournament.teams.map((team) => (
+                {tournament.teams && tournament.teams.map((team) => (
                   <li
                     key={team.teamId}
                     className="transition-transform duration-200 transform group-hover:translate-x-2"

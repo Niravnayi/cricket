@@ -1,5 +1,6 @@
 import React from 'react'
 import { MatchDetails } from './types/matchDetails'
+
 const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDetails }) => {
 
     return (
@@ -8,7 +9,7 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
                 <h3 className="text-lg font-semibold text-red-900">
                     Bowling Stats - {matchDetails.firstTeamName}
                 </h3>
-                {matchDetails.scorecard.bowlingStats
+                {matchDetails.scorecard?.bowlingStats && matchDetails.scorecard?.bowlingStats
                     .filter(
                         (player) =>
                             player.teamName === matchDetails.firstTeamName
@@ -33,7 +34,7 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
                 <h3 className="text-lg font-semibold text-red-900">
                     Bowling Stats - {matchDetails.secondTeamName}
                 </h3>
-                {matchDetails.scorecard.bowlingStats
+                {matchDetails.scorecard?.bowlingStats && matchDetails.scorecard?.bowlingStats
                     .filter(
                         (player) =>
                             player.teamName === matchDetails.secondTeamName

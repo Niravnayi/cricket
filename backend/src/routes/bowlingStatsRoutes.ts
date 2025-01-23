@@ -48,6 +48,7 @@ router.post('/', async (req, res) => {
                 scorecardId,
                 playerName: player.playerName,
                 teamName: team.teamName,
+                playerId,
                 overs,
                 maidens,
                 runsConceded,

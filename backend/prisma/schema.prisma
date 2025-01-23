@@ -77,7 +77,7 @@ model teamPlayer {
   team     teams   @relation(fields: [teamId], references: [teamId])
   teamId   Int
   player   players @relation(fields: [playerId], references: [playerId])
-  playerId Int
+  playerId Int      
   playerName String
 
   @@unique([teamId, playerId]) 
@@ -132,6 +132,7 @@ model battingStats {
   scorecardId      Int
   scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
   playerName       String
+  playerId         Int
   teamName         String
   runs             Int
   balls            Int
@@ -146,6 +147,7 @@ model bowlingStats {
   scorecardId      Int
   scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
   playerName       String
+  playerId         Int
   teamName         String
   overs            Float
   maidens          Int

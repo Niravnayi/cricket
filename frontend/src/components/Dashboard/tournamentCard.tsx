@@ -1,7 +1,6 @@
-// TournamentCard.tsx
 import React from 'react';
 import Link from 'next/link';
-import { Tournament } from '@/Types/tournament';
+import { Tournament } from './types/dashboard';
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -11,35 +10,44 @@ interface TournamentCardProps {
 
 const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onDelete, onEdit }) => {
   return (
-    <div key={tournament.tournamentId}>
+    <div
+      key={tournament.tournamentId}
+      className="bg-white shadow-lg rounded-lg overflow-hidden mb-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+    >
+      {/* Tournament Info */}
       <Link href={`/organizer/tournament/${tournament.tournamentId}`}>
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-6">
-          <div className="bg-[#009270] text-white p-10 hover:shadow-lg hover:scale-105 transition-all duration-300">
-            <h2 className="text-2xl font-bold">{tournament.tournamentName}</h2>
-            <p className="text-sm">Organizer ID: {tournament.organizerId}</p>
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold text-white">Teams:</h3>
-              {tournament.teams && tournament.teams.map((team) => (
-                <p key={team.id} className="text-sm text-gray-300">{team.team.teamName}</p>
+        <div className="bg-gradient-to-b from-blue-300 to-gray-300 text-white p-8 hover:shadow-lg">
+          <h2 className="text-2xl md:text-3xl font-semibold">{tournament.tournamentName}</h2>
+          <p className="text-sm md:text-base mt-2 capitalize">Organizer Name: {tournament.organizer?.organizerName}</p>
+
+          <div className="mt-4">
+            <h3 className="text-lg md:text-xl font-medium">Teams:</h3>
+            {tournament.teams &&
+              tournament.teams.map((team) => (
+                <p key={team.id} className="text-sm md:text-base text-gray-100">
+                  {team.team.teamName}
+                </p>
               ))}
-            </div>
           </div>
         </div>
       </Link>
-      <div className="flex justify-between">
-        <button
-          className="p-2 mt-5 w-24 text-white bg-red-600 hover:bg-red-700 transition-all"
-          onClick={() => tournament.tournamentId && onDelete(tournament.tournamentId)}
-        >
-          Delete
-        </button>
 
-        <button
-          className="p-2 mt-5 w-24 text-black bg-blue-500 hover:bg-blue-600 transition-all"
-          onClick={() => onEdit(tournament)}
-        >
-          Edit
-        </button>
+      {/* Buttons Inside the Card */}
+      <div className="p-6 bg-gray-100">
+        <div className="flex justify-end gap-4">
+          <button
+            className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 transition-all rounded-md shadow-md"
+            onClick={() => onEdit(tournament)}
+          >
+            Edit
+          </button>
+          <button
+            className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 transition-all rounded-md shadow-md"
+            onClick={() => tournament.tournamentId && onDelete(tournament.tournamentId)}
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );

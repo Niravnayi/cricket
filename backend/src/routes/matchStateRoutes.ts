@@ -1,12 +1,13 @@
 import prisma from "../../prisma";
 import express, { Request, Response } from 'express';
-// import { io } from '../index';
+import { io } from '../index';
 
 const router = express.Router();
 
-router.get('/:id', async (req: Request, res: Response) => {
-    const { matchId } = req.params;
-
+router.get('/:matchId', async (req: Request, res: Response) => {
+    const {matchId} = req.params;
+    console.log(matchId)
+    
     try {
         // Fetch match state for the given matchId
         const matchState = await prisma.matchState.findUnique({
@@ -24,6 +25,11 @@ router.get('/:id', async (req: Request, res: Response) => {
             batter2Id: matchState.currentBatter2Id,
             bowlerId: matchState.currentBowlerId,
         });
+        io.emit('matchStateFetched',{
+            batter1Id: matchState.currentBatter1Id,
+            batter2Id: matchState.currentBatter2Id,
+            bowlerId: matchState.currentBowlerId,
+        })
     } catch (error) {
         console.error('Error fetching match state:', error);
         res.status(500).json({ error: 'Failed to fetch match state' });
@@ -32,7 +38,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
     const { matchId, batter1Id, batter2Id, bowlerId } = req.body;
-
+    
     if (!matchId || !batter1Id || !batter2Id || !bowlerId) {
         res.status(400).json({ error: 'All fields (matchId, batter1Id, batter2Id, bowlerId) are required' });
         return;
@@ -70,7 +76,9 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.put('/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
+    
     const { dismissedBatterId, newBatterId, newBowlerId } = req.body;
+    console.log(dismissedBatterId, newBatterId, newBowlerId)
 
     try {
         // Check if the match state exists
@@ -81,7 +89,7 @@ router.put('/:matchId', async (req: Request, res: Response) => {
         // If match state doesn't exist, create a new state entry
         if (!matchState) {
             matchState = await prisma.matchState.create({
-                data: { matchId: Number(matchId) },
+                data: { matchId: Number(matchId),currentBatter1Id:dismissedBatterId,currentBatter2Id:newBatterId,currentBowlerId:newBowlerId },
             });
         }
 
@@ -134,3 +142,7 @@ router.delete('/:matchId', async (req: Request, res: Response) => {
 
 
 export default router
+
+function typeOf(matchId: string): any {
+    throw new Error("Function not implemented.");
+}

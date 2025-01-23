@@ -1,11 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/server-actions/tournamentActions'; 
-import { Tournament } from '@/Types/tournament';
 import TournamentCard from '@/components/Dashboard/tournamentCard';
-import TournamentForm from '@/components/Dashboard/dashboardForm';
+import DashboadForm from '@/components/Dashboard/dashboardForm';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
-import { Team } from '@/Types/team';
+import { Team, Tournament } from './types/dashboard';
 
 const DashboardTournaments = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -13,12 +12,13 @@ const DashboardTournaments = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   const [teamData, setTeamData] = useState<Team[]>([]);
-  const hasFetchedData = useRef(false); // Ref to track if data has been fetched
+  const hasFetchedData = useRef(false); 
 
   const fetchTournamentsData = async () => {
     try {
       const tournamentData = await fetchTournaments(1);
       setTournaments(tournamentData);
+      console.log('Fetched tournaments:', tournamentData);
 
       const team = await fetchTeamData();
       setTeamData(team);
@@ -29,7 +29,7 @@ const DashboardTournaments = () => {
 
   if (!hasFetchedData.current) {
     fetchTournamentsData();
-    hasFetchedData.current = true; // Mark that data fetching has been triggered
+    hasFetchedData.current = true;
   }
 
   const handleDelete = async (tournamentId: number) => {
@@ -50,11 +50,12 @@ const DashboardTournaments = () => {
   const handleCreateTournament = async (tournament: Tournament) => {
     if (isEditing && currentTournament?.tournamentId) {
       await updateTournament(currentTournament.tournamentId, tournament);
+      <span className='loader z-20'></span>
     } else {
       await createTournament(tournament);
     }
     setShowModal(false);
-    fetchTournamentsData(); // Re-fetch tournaments after creating/updating
+    fetchTournamentsData(); 
   };
 
   const handleCreateTrigger = () => {
@@ -65,7 +66,27 @@ const DashboardTournaments = () => {
 
   return (
     <div>
-      <section className="mb-8">
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogTrigger asChild>
+          <Button onClick={handleCreateTrigger} className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-[#007f5f]">
+            Create Tournament
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="p-8 max-w-lg">
+          <DialogTitle className="text-2xl font-semibold mb-4">{isEditing ? "Edit Tournament" : "Create New Tournament"}</DialogTitle>
+          <DialogFooter>
+            <DashboadForm 
+              tournamentData={currentTournament} 
+              teamData={teamData} 
+              onSubmit={handleCreateTournament}
+              onClose={() => setShowModal(false)} 
+            />
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <section className="mt-8">
         {tournaments.length > 0 ? (
           tournaments.map((tournament) => (
             <TournamentCard
@@ -79,27 +100,6 @@ const DashboardTournaments = () => {
           <p>No tournaments found.</p>
         )}
       </section>
-
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogTrigger asChild>
-          <Button onClick={handleCreateTrigger} className="px-6 py-2 bg-[#009270] text-white rounded-md hover:bg-[#007f5f]">
-            Create Tournament
-          </Button>
-        </DialogTrigger>
-
-        <DialogContent className="p-8 max-w-lg">
-          <DialogTitle className="text-2xl font-semibold mb-4">{isEditing ? "Edit Tournament" : "Create New Tournament"}</DialogTitle>
-          <DialogFooter>
-            <TournamentForm 
-              tournamentData={currentTournament} 
-              teamData={teamData} 
-              onSubmit={handleCreateTournament} 
-            />
-            
-            <Button variant="secondary" onClick={() => setShowModal(false)} className="px-6 py-2">Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

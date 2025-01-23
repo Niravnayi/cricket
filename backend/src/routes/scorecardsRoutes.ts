@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
 import { Scorecard } from '../types/scorecardRoute';
-// import { io } from '../index';
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -23,12 +23,12 @@ router.get('/:id', async (req: Request, res: Response) => {
     try {
         const scorecard = await prisma.scorecard.findUnique({
             where: { scorecardId: parseInt(id) },
-            include: { 
+            include: {
                 match: true,
-                battingStats: true, 
-                bowlingStats: true,    
-                extras: true,           
-             },
+                battingStats: true,
+                bowlingStats: true,
+                extras: true,
+            },
         });
         res.json(scorecard);
     } catch (error) {
@@ -38,9 +38,16 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 // Create a new scorecard
 router.post('/', async (req: Request, res: Response) => {
+    console.log(req.body)
     const { matchId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
-
-    if (!matchId || !teamAScore || !teamBScore || !teamAWickets || !teamBWickets || !teamAOvers || !teamBOvers) {
+    console.log(matchId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers)
+    if (matchId === undefined ||
+        teamAScore === undefined ||
+        teamBScore === undefined ||
+        teamAWickets === undefined ||
+        teamBWickets === undefined ||
+        teamAOvers === undefined ||
+        teamBOvers === undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }
@@ -58,10 +65,11 @@ router.post('/', async (req: Request, res: Response) => {
             },
         });
 
-        // io.emit('scorecard', newScorecard);
+        io.emit('scoreCreate', newScorecard);
         res.status(201).json(newScorecard);
     } catch (error) {
-        res.status(500).json({ error: 'Error creating scorecard' });
+        console.log(error)
+        res.status(500).json({ error: error });
     }
 });
 
@@ -69,21 +77,21 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
-
     if (!teamAScore || !teamBScore || !teamAWickets || !teamBWickets || !teamAOvers || !teamBOvers) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }
-    
+
     try {
         const updatedScorecard = await prisma.scorecard.update({
             where: { scorecardId: parseInt(id) },
             data: { teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers },
         });
 
-        // io.emit('scorecard', updatedScorecard);
+        io.emit('scoreUpdate', updatedScorecard);
         res.json(updatedScorecard);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error updating scorecard' });
     }
 });
@@ -95,7 +103,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
         const deletedScorecard = await prisma.scorecard.delete({
             where: { scorecardId: parseInt(id) },
         });
-        
+
         // io.emit('scorecardDeleted', deletedScorecard);
         res.status(200).json({ message: 'Scorecard deleted successfully', deletedScorecard });
     } catch (error) {
