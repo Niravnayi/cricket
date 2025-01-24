@@ -10,15 +10,21 @@ router.get('/', async (req: Request, res: Response) => {
     try {
         const battingStats = await prisma.battingStats.findMany();
         res.json(battingStats);
+        io.emit("teamAUpdate", {
+            runs: battingStats.map(stat => stat.runs),
+            overs: battingStats.map(stat => stat.balls),
+          });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching batting stats' });
     }
+    
+      
 });
 
 // Post a new batting stat
 router.post('/', async (req: Request, res: Response) => {
     const battingStats: BattingStat[] = req.body;  // Expect an array of objects
-
+    console.log(battingStats)
     // Check if the body is an array
     if (!Array.isArray(battingStats)) {
         res.status(400).json({ error: 'Request body should be an array of batting stats' });
@@ -27,7 +33,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     try {
         const createdStats = [];
-
         // Iterate over each batting stat object in the array
         for (const stat of battingStats) {
             const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal } = stat;

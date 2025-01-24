@@ -76,7 +76,7 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.put('/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
-    
+    console.log(req.body)
     const { dismissedBatterId, newBatterId, newBowlerId } = req.body;
     console.log(dismissedBatterId, newBatterId, newBowlerId)
 
