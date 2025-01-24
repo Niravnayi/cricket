@@ -19,6 +19,7 @@ const SignIn = () => {
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     try {
+      
        await login(data.email, data.password, data.role);
 
       router.push('/');
@@ -121,3 +122,4 @@ const SignIn = () => {
 };
 
 export default SignIn;
+

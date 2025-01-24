@@ -77,6 +77,7 @@ const Navbar = () => {
             <div>
               <SignOutButton />
             </div>
+
           </div>
         ) : (
           <div className="hidden md:flex items-center">
@@ -161,3 +162,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
