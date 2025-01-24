@@ -3,6 +3,7 @@ export type BattingStats = {
   teamName: string;
   runs: number;
   balls: number;
+  matchId:number;
   fours: number;
   sixes: number;
   strikeRate: number;

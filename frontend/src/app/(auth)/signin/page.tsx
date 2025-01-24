@@ -19,7 +19,9 @@ const SignIn = () => {
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     try {
-      const result = await login(data.email, data.password, data.role);
+      
+       await login(data.email, data.password, data.role);
+
       router.push('/');
     } 
     catch (err: unknown) { 
@@ -110,7 +112,7 @@ const SignIn = () => {
         {/* Sign Up Link */}
         <div className="mt-4 text-center">
           <span className="text-sm text-gray-500">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <a href="/signup" className="text-blue-500 hover:underline">Sign up</a>
           </span>
         </div>
@@ -120,3 +122,4 @@ const SignIn = () => {
 };
 
 export default SignIn;
+

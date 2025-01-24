@@ -1,5 +1,5 @@
 
-import { Tournament } from "@/Types/tournament";
+import { Tournament } from "@/components/Dashboard/types/dashboard";
 import axiosClient from "@/utils/axiosClient";
 
 export async function fetchTeamData() {

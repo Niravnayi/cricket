@@ -49,6 +49,7 @@ export interface BattingStats {
   teamName: string;
   runs: number;
   balls: number;
+  battingStatsId:number;
   fours: number;
   sixes: number;
   strikeRate: number;
