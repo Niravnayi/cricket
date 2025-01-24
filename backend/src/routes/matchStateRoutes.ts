@@ -89,13 +89,13 @@ router.put('/:matchId', async (req: Request, res: Response) => {
         // If match state doesn't exist, create a new state entry
         if (!matchState) {
             matchState = await prisma.matchState.create({
-                data: { matchId: Number(matchId),currentBatter1Id:dismissedBatterId,currentBatter2Id:newBatterId,currentBowlerId:newBowlerId },
+                data: { matchId: Number(matchId), currentBatter1Id:dismissedBatterId, currentBatter2Id:newBatterId, currentBowlerId:newBowlerId },
             });
+            return
         }
 
         let updatedBatter1Id = matchState.currentBatter1Id;
         let updatedBatter2Id = matchState.currentBatter2Id;
-
         // Update batters based on the dismissed batter
         if (dismissedBatterId === matchState.currentBatter1Id) {
             updatedBatter1Id = newBatterId;  // New batter replaces dismissed batter 1

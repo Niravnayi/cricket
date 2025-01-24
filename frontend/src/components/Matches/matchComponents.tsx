@@ -8,6 +8,7 @@ import MatchStatusComponent from "@/components/Matches/matchStatusComponent";
 import TeamSquadComponents from "./teamSquadComponents";
 import { MatchDetails } from "./types/matchDetails";
 import socket from "@/utils/socket";
+import ScoreCardComponent from "./ScoreCardComponent";
 
 interface MatchPageProps {
   id: number;
@@ -55,6 +56,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       <BattingStatsComponent matchDetails={matchDetails} />
       <BowlingStatsComponent matchDetails={matchDetails} />
       <MatchStatusComponent matchDetails={matchDetails} />
+      <ScoreCardComponent id={id}/>
       <TeamSquadComponents id={id} />
     </div>
   );
