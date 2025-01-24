@@ -36,8 +36,7 @@ export async function fetchTeamPlayers({ firstTeamId, secondTeamId }: { firstTea
 
 export async function updateBattingStats({updateBatting, battingStatsId}: { updateBatting: BattingStats, battingStatsId: number }){
     const response = await axiosClient.put(`/batting-stats/${battingStatsId}`,{
-
-        updateBatting    })
+        updateBatting    }) 
     return response.data
 
 }

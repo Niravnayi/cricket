@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { fetchMatchById, fetchTeamPlayers, updateMatchState } from '../../server-actions/matchesActions';
+import { fetchMatchById, fetchTeamPlayers, updateMatchState, addBattingStats, updateBattingStats } from '../../server-actions/matchesActions';
 import { Team } from './types/matchDetails';
-import { MatchDetails } from './types/matchDetails';
-import { addBattingStats } from '../../server-actions/matchesActions'; // Import the addBattingStats function
+import { MatchDetails, BattingStats } from './types/matchDetails';
 
 interface MatchPageProps {
   id: number;
@@ -49,44 +48,65 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
   const handleSubmitAllSelections = async () => {
     if (!matchDetails?.matchId) return;
 
-    // Prepare the batting stats data
-    const battingStatsData = [
+    const newBattingStatsData = [
       {
-        scorecardId: matchDetails.scorecard?.scorecardId,
-        playerId: playerSelections.currentBatter1 ?? 0, // Default to 0 if no batter selected
-        teamId: 1, // Assuming 1 for first team, modify accordingly
-        playerName: firstTeam.find(player => player.playerId === playerSelections.currentBatter1)?.playerName || '',
-        teamName: matchDetails.firstTeamName ?? '',
-        runs: 0,
-        balls: 0,
-        fours: 0,
-        sixes: 0,
-        strikeRate: 0,
-        dismissal: "Not Out",
+        playerId: playerSelections.currentBatter1,
+        isNew: !firstTeam.find(player => player.playerId === playerSelections.currentBatter1)?.battingStatsId,
+        teamId: 1,
+        role: 'currentBatter1',
       },
       {
-        scorecardId: matchDetails.scorecard?.scorecardId,
-        playerId: playerSelections.currentBatter2 ?? 0,
-        teamId: 1, // Assuming 1 for first team, modify accordingly
-        teamName: matchDetails.firstTeamName ?? '',
-        playerName: firstTeam.find(player => player.playerId === playerSelections.currentBatter2)?.playerName || '',
-        runs: 0,
-        balls: 0,
-        fours: 0,
-        sixes: 0,
-        strikeRate: 0,
-        dismissal: "Not Out",
+        playerId: playerSelections.currentBatter2,
+        isNew: !firstTeam.find(player => player.playerId === playerSelections.currentBatter2)?.battingStatsId,
+        teamId: 1,
+        role: 'currentBatter2',
       },
     ];
 
     try {
-      // Send the batting stats to the API
-      for (const stats of battingStatsData) {
-        const response = await addBattingStats(stats);
-        console.log('Batting stats created:', response);
+      for (const batting of newBattingStatsData) {
+        const existingStatsId = firstTeam.find(player => player.playerId === batting.playerId)?.battingStatsId;
+
+        if (existingStatsId) {
+          // Update existing batting stats only for the new batsman
+          const updateData: BattingStats = {
+            scorecardId: matchDetails.scorecard?.scorecardId || 0,
+            playerId: batting.playerId || 0,
+            teamId: batting.teamId,
+            playerName: firstTeam.find(player => player.playerId === batting.playerId)?.playerName || '',
+            teamName: matchDetails.firstTeamName || '',
+            runs: 0,
+            balls: 0,
+            fours: 0,
+            sixes: 0,
+            strikeRate: 0,
+            dismissal: "Not Out",
+          };
+
+          console.log(`Updating stats for player ${batting.playerId}`);
+          await updateBattingStats({ updateBatting: updateData, battingStatsId: existingStatsId });
+        } else if (batting.playerId) {
+          // Add new batting stats
+          const addData: BattingStats = {
+            scorecardId: matchDetails.scorecard?.scorecardId || 0,
+            playerId: batting.playerId,
+            teamId: batting.teamId,
+            playerName: firstTeam.find(player => player.playerId === batting.playerId)?.playerName || '',
+            teamName: matchDetails.firstTeamName || '',
+            runs: 0,
+            balls: 0,
+            fours: 0,
+            sixes: 0,
+            strikeRate: 0,
+            dismissal: "Not Out",
+          };
+
+          console.log(`Adding new stats for player ${batting.playerId}`);
+          await addBattingStats(addData);
+        }
       }
 
-      // Now update the match state
+      // Update match state after processing batting stats
       const matchState = {
         matchId: matchDetails.matchId,
         currentBatter1Id: playerSelections.currentBatter1 ?? 0,
@@ -94,13 +114,10 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
         currentBowlerId: playerSelections.currentBowler ?? 0,
       };
 
-      // Update match state after successful batting stats creation
-      console.log(matchState)
+      console.log('Match state to update:', matchState);
       await updateMatchState(matchState);
-      console.log('Match state updated:', matchState);
-
     } catch (error) {
-      console.log('Error submitting batting stats or updating match state:', error);
+      console.error('Error processing batting stats or updating match state:', error);
     }
   };
 

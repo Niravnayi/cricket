@@ -13,6 +13,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import SignOutButton from "@/app/(auth)/signout/page";
+
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -72,6 +74,10 @@ const Navbar = () => {
               <p className="font-base">{user.username}</p>
               <p className="text-sm">{user.email}</p>
             </div>
+            <div>
+              <SignOutButton />
+            </div>
+
           </div>
         ) : (
           <div className="hidden md:flex items-center">
@@ -156,3 +162,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

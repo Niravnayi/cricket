@@ -24,3 +24,4 @@ export const setAuthCookies = (res: Response, token: string, id: string, role: s
         maxAge: 24 * 60 * 60 * 1000,
     });
 };
+

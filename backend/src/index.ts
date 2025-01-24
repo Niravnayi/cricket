@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser'
 import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
@@ -19,10 +20,12 @@ import extrasRoutes from './routes/extrasRoutes';
 import matchStateRoutes from './routes/matchStateRoutes';
 
 const app = express();
+app.use(cookieParser())
+
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000', 
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Socket'],
     credentials: true,
@@ -42,7 +45,7 @@ app.use(
 
 app.use(express.json());
 
-app.use('/signin',signinRoutes);
+app.use('/signin', signinRoutes);
 app.use('/signup', signupRoutes);
 app.use('/signout', signOutRoutes);
 app.use('/users', usersRoutes);
@@ -64,7 +67,7 @@ io.on('connection', (socket) => {
 
   socket.on("updateMatchStatus", (data) => {
     console.log("Match status update:", data);
-    io.emit("matchStatusUpdate", data); 
+    io.emit("matchStatusUpdate", data);
   });
 
   socket.on('disconnect', () => {
