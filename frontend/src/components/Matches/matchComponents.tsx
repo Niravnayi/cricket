@@ -12,7 +12,7 @@ import socket from "@/utils/socket";
 interface MatchPageProps {
   id: number;
 }
-
+  
 const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
   const [matchDetails, setMatchDetails] = useState<MatchDetails>();
 
