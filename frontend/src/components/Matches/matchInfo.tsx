@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MatchDetails } from './types/matchDetails';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { updateMatchStats } from '@/server-actions/matchesActions';
+import { updateMatchStats,setScoreCard } from '@/server-actions/matchesActions';
 import socket from '@/utils/socket';
 import { Scorecard } from '../Dashboard/types/dashboard';
 
@@ -37,6 +37,18 @@ const MatchInfo: React.FC<MatchInfoProps> = ({ matchDetails, id }) => {
       dateTime: new Date(matchDetails.dateTime),
       isLive: isLive ? false : true
     });
+
+
+    const scorecard: Scorecard = {
+      teamAScore: 0,
+      teamBScore: 0,
+      teamAWickets: 0,
+      teamBWickets: 0,
+      teamAOvers: 0,
+      teamBOvers: 0
+    }
+await setScoreCard({ matchId: matchDetails.matchId, Scorecard: scorecard });
+
     socket.on("scoreUpdate", (updatedScore:Scorecard) => {
       console.log("Score update received:", updatedScore);
     });

@@ -4,6 +4,7 @@ export interface BowlingStat {
     teamId: number;
     overs: number;
     maidens: number;
+    bowlingStatsId:number;
     runsConceded: number;
     wickets: number;
     economyRate: number;

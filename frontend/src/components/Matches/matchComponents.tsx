@@ -8,6 +8,7 @@ import MatchStatusComponent from "@/components/Matches/matchStatusComponent";
 import TeamSquadComponents from "./teamSquadComponents";
 import { MatchDetails } from "./types/matchDetails";
 import socket from "@/utils/socket";
+import ScoreCardComponent from "./ScoreCardComponent";
 
 interface MatchPageProps {
   id: number;
@@ -26,7 +27,6 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
 
     // Real-time updates for match changes
     socket.on("matchUpdated", (updatedMatch: MatchDetails) => {
-      console.log("Real-time match update received:", updatedMatch);
       setMatchDetails(updatedMatch);
     });
     
@@ -42,7 +42,6 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       </div>
     );
   }
-  console.log(matchDetails)
 
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden">
@@ -55,6 +54,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       <BattingStatsComponent matchDetails={matchDetails} />
       <BowlingStatsComponent matchDetails={matchDetails} />
       <MatchStatusComponent matchDetails={matchDetails} />
+      <ScoreCardComponent id={id}/>
       <TeamSquadComponents id={id} />
     </div>
   );

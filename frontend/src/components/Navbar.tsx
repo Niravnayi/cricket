@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import Link from "next/link";
 import "../app/globals.css";
 import logo from "../../public/nextinnings-high-resolution-logo-transparent.png";
@@ -14,12 +14,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import SignOutButton from "@/app/(auth)/signout/page";
-
+import { FaUserCircle } from "react-icons/fa";
 
 const Navbar = () => {
   const pathname = usePathname();
   const user = {
-    avatar: "/path/to/avatar.jpg",
+    avatar: "", 
     username: "John Doe",
     email: "johndoe@example.com",
   };
@@ -39,7 +39,7 @@ const Navbar = () => {
         {/* Links for Desktop */}
         <div className="hidden md:flex space-x-8">
           <Link
-            href="/All-Matches"
+            href="/all-matches"
             className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
           >
             All Matches
@@ -63,13 +63,17 @@ const Navbar = () => {
         {/* User Profile for Desktop */}
         {user ? (
           <div className="hidden md:flex items-center space-x-4">
-            <Image
-              src={user.avatar}
-              alt="User Avatar"
-              className="w-12 h-12 rounded-full"
-              width={48}
-              height={48}
-            />
+            {user.avatar ? (
+              <Image
+                src={user.avatar}
+                alt="User Avatar"
+                className="w-12 h-12 rounded-full"
+                width={48}
+                height={48}
+              />
+            ) : (
+              <FaUserCircle className="w-12 h-12 text-gray-500" />
+            )}
             <div className="text-gray-700">
               <p className="font-base">{user.username}</p>
               <p className="text-sm">{user.email}</p>
@@ -77,7 +81,6 @@ const Navbar = () => {
             <div>
               <SignOutButton />
             </div>
-
           </div>
         ) : (
           <div className="hidden md:flex items-center">
@@ -114,7 +117,7 @@ const Navbar = () => {
             </SheetHeader>
             <div className="space-y-4 mt-4">
               <Link
-                href="/All-Matches"
+                href="/all-matches"
                 className="block text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
               >
                 All Matches
@@ -133,13 +136,17 @@ const Navbar = () => {
               </Link>
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <Image
-                    src={user.avatar}
-                    alt="User Avatar"
-                    className="w-10 h-10 rounded-full"
-                    width={40}
-                    height={40}
-                  />
+                  {user.avatar ? (
+                    <Image
+                      src={user.avatar}
+                      alt="User Avatar"
+                      className="w-10 h-10 rounded-full"
+                      width={40}
+                      height={40}
+                    />
+                  ) : (
+                    <FaUserCircle className="w-10 h-10 text-gray-500" />
+                  )}
                   <div className="text-sm">
                     <p className="font-medium">{user.username}</p>
                     <p className="text-xs">{user.email}</p>
@@ -162,4 +169,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

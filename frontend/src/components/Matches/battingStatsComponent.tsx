@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import socket from '@/utils/socket';
 import axiosClient from '@/utils/axiosClient';
 import { MatchDetails } from './types/matchDetails';
-import { getBattingStats } from '@/server-actions/matchesActions';
+import { getBattingStats,getMatchState,getBowlingStats } from '@/server-actions/matchesActions';
 
 interface PlayerStats {
   dismissal: string;
@@ -27,6 +27,8 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [pendingRuns, setPendingRuns] = useState<number>(0);
   const [battingStats, setBattingStats] = useState<PlayerStats[]>([]);
+  const [ dismissal,setDismissal] = useState<string | null>(null)
+  const [matchState,setMatchState] = useState()
 
   // Fetch initial data for batting stats
   useEffect(() => {
@@ -50,9 +52,23 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
 
     fetchBattingStats();
 
+    async function getMatchStats(){
+      try {
+        const response = await getMatchState({ matchId: matchDetails.matchId })
+        setMatchState(response)
+      } catch (error) {
+        console.error('Error fetching match state:', error);
+      }
+    }
+
+    getMatchStats()
+
+
+
+
+
     // Listen for real-time updates via socket
     socket.on('fetchMatch', (updatedMatchState: MatchDetails) => {
-      console.log('Real-time match update received:', updatedMatchState);
 
       if (updatedMatchState.scorecard?.battingStats) {
         setBattingStats((prevStats) => {
@@ -84,12 +100,50 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
       setPendingRuns(pendingRuns + runs);
     }
   };
+  const handleDismissedClick = async (player: PlayerStats) => {
+    const dismissalMethod = prompt(`Enter the dismissal method for ${player.playerName}:`, "Caught, Bowled, etc.");
+    setDismissal(dismissalMethod)
+    if (dismissalMethod) {
+      try {
+        const response = await axiosClient.put(`/batting-stats/${player.battingStatsId}`, {
+          ...player,
+          dismissal: dismissalMethod,
+          teamId:matchDetails.firstTeamId
+        });
+        await getBattingStats()
+        const currentBowlerId = matchState.bowlerId;
+        const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
+          const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: any) => bowler.playerId === currentBowlerId)[0];
+        const updatedBowlerStats = {
+          ...currentBowlerStats,
+          teamId: matchDetails.secondTeamId,
+          wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissalMethod ? 0 : 1):0, // Increment wickets if batsman is dismissed
+        };
+        await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
+        socket.on('dismissedBatter',(data:{dismissedBatter:string[]})=>{
+        })
 
+        setBattingStats((prevStats) =>
+          prevStats.map((p) =>
+            p.battingStatsId === player.battingStatsId
+              ? { ...p, dismissal: dismissalMethod }
+              : p
+          )
+        );
+
+        return () => {
+          socket.off('dismissedBatter');
+        };
+      } catch (error) {
+        console.error('Error updating dismissal:', error);
+      }
+    }
+  };
   const handleSaveClick = async () => {
     if (editingPlayer) {
       const updatedRuns = editingPlayer.runs + pendingRuns;
       const updatedBalls = editingPlayer.balls + 1;
-
+  
       try {
         const response = await axiosClient.put(`/batting-stats/${editingPlayer.battingStatsId}`, {
           scorecardId: editingPlayer.scorecardId,
@@ -102,40 +156,69 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
           strikeRate: parseInt(((updatedRuns / updatedBalls) * 100).toFixed(2)),
           dismissal: editingPlayer.dismissal,
         });
-
-        console.log('Updated successfully:', response.data);
-
-        async function getBatting(){
-            const response = await getBattingStats()
-            console.log(response)
-        }
-        getBatting()
-
-        socket.on("teamAUpdate", async (data: { runs: number[]; overs: number[] }) => {
-          console.log("Real-time data received:", data);
-      console.log('data change recieved')
-          
-      });
-      
-      setBattingStats((prevStats) =>
-        prevStats.map((player) =>
-          player.battingStatsId === editingPlayer.battingStatsId
-      ? { ...player, runs: updatedRuns, balls: updatedBalls }
-      : player
-    )
-  );
   
-  setEditingPlayer(null);
-  setPendingRuns(0);
-} catch (error) {
-  console.error('Error updating batting stats:', error);
-}
+        
+        async function getBowling(){
+          try{
+            await getBowlingStats()
+          }
+          catch(error){
+            console.error('Error fetching bowling stats:', error);
+          }
+        }
+        getBowling()
+        
+    socket.on('allBowlingStats',(data:{bowlingStats: any[]})=>{
+      
+    })
 
-    return () => {
-        socket.off("teamAUpdate");
-    };
+        // Now, update the bowling stats based on currentBowlerId
+        const currentBowlerId = matchState.bowlerId;
+  
+        if (currentBowlerId) {
+          const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
+          const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: any) => bowler.playerId === currentBowlerId)[0];
+          const addedRuns = currentBowlerStats ? pendingRuns + currentBowlerStats.runsConceded : pendingRuns;
+          const updatedBowlerStats = {
+            ...currentBowlerStats,
+            runsConceded: addedRuns, 
+            teamId: matchDetails.secondTeamId,
+            overs:parseFloat(`${Math.floor(updatedBalls / 6)}.${updatedBalls % 6}`),
+            wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissal ? 0 : 1):0, 
+            economyRate: parseFloat((currentBowlerStats.runsConceded / updatedBalls).toFixed(2)), 
+          };
+
+          await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
+
+          // Emit the updated bowling stats via socket
+          socket.emit('updateBowlingStats', updatedBowlerStats);
+
+          // Update the state with the new bowling stats
+          socket.on('updateBowlingStats', (updatedBowlerStats: any) => {
+          });
+        }
+  
+        setBattingStats((prevStats) =>
+          prevStats.map((player) =>
+            player.battingStatsId === editingPlayer.battingStatsId
+              ? { ...player, runs: updatedRuns, balls: updatedBalls }
+              : player
+          )
+        );
+  
+        setEditingPlayer(null);
+        setPendingRuns(0);
+  
+      } catch (error) {
+        console.error('Error updating batting stats or bowling stats:', error);
+      }
+      return () => {
+        socket.off('allBowlingStats');
+      };
     }
   };
+  
+
 
   return (
     <div className="grid grid-cols-2 gap-6 p-6">
@@ -145,7 +228,11 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
             Batting Stats - {matchDetails[teamKey as 'firstTeamName' | 'secondTeamName']}
           </h3>
           {battingStats
-            .filter((player) => player.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'])
+            .filter(
+              (player) =>
+                player.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] &&
+                player.dismissal === 'Not Out'
+            )
             .map((player) => (
               <div key={player.playerName} className="flex justify-between items-center mb-4">
                 <span className="text-gray-800 font-medium">{player.playerName}</span>
@@ -161,8 +248,15 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
                 >
                   Edit
                 </button>
+                <button
+                  className="ml-4 px-3 py-1 bg-red-500 text-white text-sm rounded"
+                  onClick={() => handleDismissedClick(player)}
+                >
+                  Dismissed
+                </button>
               </div>
             ))}
+          {/* Editing player UI remains unchanged */}
           {editingPlayer && editingPlayer.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] && (
             <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-md">
               <p className="text-sm font-semibold mb-3">
@@ -180,7 +274,7 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
                 ))}
                 <button
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                  onClick={()=>setPendingRuns(0)}
+                  onClick={() => setPendingRuns(0)}
                 >
                   Clear
                 </button>

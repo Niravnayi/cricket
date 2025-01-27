@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import axiosClient from "@/utils/axiosClient";
 import { BattingStats, MatchDetails } from '@/app/organizer/matches/types/matchType';
 import { fetchMatchDetails } from '@/server-actions/organizerMatchActions'; 
-import { fetchTeamData } from '@/server-actions/tournamentActions';
+import { fetchTeamData } from '@/server-actions/organizer/TournamentActions';
 import { Team } from '@/components/Matches/types/matchDetails';
 
 interface Id {
