@@ -1,15 +1,39 @@
-import { useTournaments } from '@/Hooks/useTournaments'
-import Link from 'next/link'
-import React from 'react'
-import AnimatedArrow from './animatedArrow'
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import AnimatedArrow from './animatedArrow';
+import { fetchTournaments } from '@/server-actions/user/tournamentActions';
+import { Tournament } from '@/components/Tournament/types/tournament';
 
 const TournamentComponent = () => {
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-    const{tournaments} = useTournaments()
+  useEffect(() => {
+    const loadTournaments = async () => {
+      try {
+        const data = await fetchTournaments();
+        setTournaments(data);
+        console.log('Fetched Tournaments:', data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to fetch tournaments');
+      }
+    };
+
+    loadTournaments();
+  }, []);
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
+  if (!tournaments.length) {
+    return <div>Loading tournaments...</div>;
+  }
+
   return (
     <div>
-        
-      <ul className="space-y-6 flex flex-col w-full ">
+      <ul className="space-y-6 flex flex-col w-full">
         {tournaments.map((tournament) => (
           <Link
             key={tournament.tournamentId}
@@ -32,14 +56,15 @@ const TournamentComponent = () => {
                 Teams:
               </h3>
               <ul className="list-disc list-inside mt-2 text-gray-700 group-hover:text-gray-900">
-                {tournament.teams && tournament.teams.map((team) => (
-                  <li
-                    key={team.teamId}
-                    className="transition-transform duration-200 transform group-hover:translate-x-2"
-                  >
-                    {team.team.teamName}
-                  </li>
-                ))}
+                {tournament.teams &&
+                  tournament.teams.map((team) => (
+                    <li
+                      key={team.teamId}
+                      className="transition-transform duration-200 transform group-hover:translate-x-2"
+                    >
+                      {team.team.teamName}
+                    </li>
+                  ))}
               </ul>
 
               {/* Animated Arrow */}
@@ -49,7 +74,7 @@ const TournamentComponent = () => {
         ))}
       </ul>
     </div>
-  )
-}
+  );
+};
 
-export default TournamentComponent
+export default TournamentComponent;

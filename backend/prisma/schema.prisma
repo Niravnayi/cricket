@@ -144,10 +144,10 @@ model battingStats {
 
 model bowlingStats {
   bowlingStatsId   Int           @id @default(autoincrement())
-  scorecardId      Int
+  scorecardId      Int          
   scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
   playerName       String
-  playerId         Int
+  playerId         Int            
   teamName         String
   overs            Float
   maidens          Int

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/server-actions/tournamentActions'; 
+import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/server-actions/organizer/TournamentActions'; 
 import TournamentCard from '@/components/Dashboard/tournamentCard';
 import DashboadForm from '@/components/Dashboard/dashboardForm';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
