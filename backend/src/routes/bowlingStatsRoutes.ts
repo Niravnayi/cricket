@@ -1,7 +1,7 @@
 import prisma from '../../prisma';
 import express, { Request, Response } from 'express';
 import { BowlingStat } from '../types/bowlingStatsRoute';
-// import { io } from '../index';
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -9,17 +9,19 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const bowlingStats = await prisma.bowlingStats.findMany();
+        io.emit('allBowlingStats', {bowlingStats})
         res.json(bowlingStats);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching bowling stats' });
     }
 });
 
+
 // Post a new bowling stat
 router.post('/', async (req, res) => {
     const { scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
-
-    if (!scorecardId || !playerId || !teamId || !overs || !maidens || !runsConceded || !wickets || !economyRate) {
+    console.log(scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate)
+    if (!scorecardId==undefined || !playerId==undefined || !teamId==undefined || !overs==undefined || !maidens==undefined || !runsConceded==undefined || !wickets==undefined || !economyRate==undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return
     }
@@ -67,9 +69,10 @@ router.post('/', async (req, res) => {
 // Update a bowling stat
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
-
-    if (!scorecardId || !playerId || !teamId || !overs || !maidens || !runsConceded || !wickets || !economyRate) {
+    const { bowlingStatsId,scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
+    console.log("bowling stats")
+    console.log(bowlingStatsId,scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate)
+    if (!scorecardId==undefined || !playerId==undefined || !teamId==undefined || !overs==undefined || !maidens==undefined || !runsConceded==undefined || !wickets==undefined || !economyRate==undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return
     }
@@ -94,7 +97,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         }
 
         const updatedBowlingStat = await prisma.bowlingStats.update({
-            where: { bowlingStatsId: parseInt(id) },
+            where: { bowlingStatsId: bowlingStatsId },
             data: {
                 scorecardId,
                 playerName: player.playerName,
@@ -111,6 +114,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         // io.emit('bowlingStats', updatedBowlingStat);
         res.json(updatedBowlingStat);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error updating bowling stats' });
     }
 });

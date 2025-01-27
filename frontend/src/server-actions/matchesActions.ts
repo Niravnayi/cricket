@@ -1,4 +1,4 @@
-import { BattingStats } from "@/app/matches/types";
+import { BattingStats, BowlingStats } from "@/app/matches/types";
 import { Scorecard } from "@/components/Matches/types/matchDetails";
 import axiosClient from "@/utils/axiosClient";
 
@@ -66,6 +66,22 @@ export async function getBattingStats() {
 
 }
 
+export async function addBowlingStats({bowlingStatsData}: {bowlingStatsData: BowlingStats}) {
+  const {scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate} = bowlingStatsData;
+  const response = await axiosClient.post('/bowling-stats',{
+    scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate
+  })
+  return response.data
+}
+
+export async function updateBowlingStats({bowlingStatsData,bowlingStatsId}: {bowlingStatsData: BowlingStats,bowlingStatsId: number}) {
+  const {scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate} = bowlingStatsData;
+  const response = await axiosClient.post('/bowling-stats',{
+    bowlingStatsId,scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate
+  })
+  return response.data
+}
+
 
 export async function updateMatchStats({ id, tournamentId, firstTeamId, secondTeamId, venue, dateTime, isLive }: { id: number, tournamentId: number, firstTeamId: number, secondTeamId: number, venue: string, dateTime: Date, isLive: boolean }) {
   const response = await axiosClient.put(`/matches/${id}`, {
@@ -85,6 +101,11 @@ export async function updateMatchState({ matchId, currentBatter1Id, currentBatte
 
 export async function getMatchState({ matchId }: { matchId: number }) {
   const response = await axiosClient.get(`/match-state/${matchId}`)
+  return response.data
+}
+
+export async function getBowlingStats() {
+  const response = await axiosClient.get('/bowling-stats')
   return response.data
 }
 
