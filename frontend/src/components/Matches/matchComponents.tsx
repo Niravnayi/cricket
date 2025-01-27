@@ -27,7 +27,6 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
 
     // Real-time updates for match changes
     socket.on("matchUpdated", (updatedMatch: MatchDetails) => {
-      console.log("Real-time match update received:", updatedMatch);
       setMatchDetails(updatedMatch);
     });
     
@@ -43,7 +42,6 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       </div>
     );
   }
-  console.log(matchDetails)
 
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden">

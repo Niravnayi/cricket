@@ -53,7 +53,6 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
     }
     getAllBattingStats()
     socket.on('allBattingStats', ({ battingStats }: BattingStats[]) => {
-        console.log(battingStats)
         setBattingStats((prevStats) => {
           const existingStatsMap = new Map(
             prevStats.map((batsman) => [batsman.playerId, batsman])

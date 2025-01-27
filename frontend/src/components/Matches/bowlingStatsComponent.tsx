@@ -19,7 +19,7 @@ interface BowlingStats {
 
 const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDetails }) => {
   const [bowlingStats, setBowlingStats] = useState<BowlingStats[]>([]);
-  const [editingBowler, setEditingBowler] = useState<BowlingStats | null>(null);
+  const [editingBowler] = useState<BowlingStats | null>(null);
   const [pendingWickets, setPendingWickets] = useState<number>(0);
   const [pendingRunsConceded, setPendingRunsConceded] = useState<number>(0);
 
@@ -54,7 +54,7 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
         getBowling()
 
     socket.on("allBowlingStats", (data: BowlingStats[]) => {
-      setBowlingStats(data);
+      setBowlingStats(data.bowlingStats);
     });  
 
 
@@ -65,8 +65,8 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
     };
   }, [matchDetails]);
 
-
 console.log(bowlingStats)
+
 return (
   <div className="grid grid-cols-2 gap-6 p-6">
     {['firstTeamName', 'secondTeamName'].map((teamKey) => (
@@ -74,7 +74,7 @@ return (
         <h3 className="text-lg font-semibold text-red-900 mb-4">
           Bowling Stats - {matchDetails[teamKey as 'firstTeamName' | 'secondTeamName']}
         </h3>
-        {(Array.isArray(bowlingStats) ? bowlingStats : []).filter((bowler) => bowler.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'])
+        {(Array.isArray(bowlingStats) ? bowlingStats :[]).filter((bowler) => bowler.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'])
           .map((bowler) => (
             <div key={bowler.playerName} className="flex justify-between items-center mb-4">
               <span className="text-gray-800 font-medium">{bowler.playerName}</span>

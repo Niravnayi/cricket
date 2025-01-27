@@ -23,7 +23,6 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
     return `${Math.floor(balls / 6)}.${balls % 6}`;
   };
   useEffect(() => {
-    console.log('this is socket')
     const manageScorecard = async () => {
       const matchId = matchDetails.matchId;
   
@@ -53,18 +52,13 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
       isScorecardCreatedRef.current = false;
     }
     // Socket event listener for real-time updates to teamA stats
-    console.log('this is second socket')
 async function getBatting(){
-    const response = await getBattingStats()
-    console.log(response)
+await getBattingStats()
 }
 getBatting()
     socket.on("teamAUpdate", (data: { runs: number[]; overs: number[] }) => {
-      console.log('listening socket')
       const totalRuns = data.runs.reduce((sum, run) => sum + run, 0);
       const totalBalls = data.overs.reduce((sum, ball) => sum + ball, 0);
-      console.log(totalRuns);
-      console.log('updating teams')
       setTeamAScore(totalRuns);
       setTeamAovers(calculateOvers(totalBalls));
     });
@@ -73,7 +67,6 @@ getBatting()
     socket.on("updatedBattingStats", (updatedStats: BattingStats) => {
       if (updatedStats.matchId === matchDetails.matchId) {
         // Handle the real-time batting stats update
-        console.log('Updated batting stats received in ScorePanel:', updatedStats);
         fetchMatchDetails();  // Re-fetch match details to ensure UI is updated
       }
     });

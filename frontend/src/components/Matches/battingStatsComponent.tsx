@@ -55,7 +55,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
     async function getMatchStats(){
       try {
         const response = await getMatchState({ matchId: matchDetails.matchId })
-        console.log(response)
         setMatchState(response)
       } catch (error) {
         console.error('Error fetching match state:', error);
@@ -70,7 +69,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
 
     // Listen for real-time updates via socket
     socket.on('fetchMatch', (updatedMatchState: MatchDetails) => {
-      console.log('Real-time match update received:', updatedMatchState);
 
       if (updatedMatchState.scorecard?.battingStats) {
         setBattingStats((prevStats) => {
@@ -113,7 +111,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
           teamId:matchDetails.firstTeamId
         });
         await getBattingStats()
-        console.log('Dismissal updated successfully:', response.data);
         const currentBowlerId = matchState.bowlerId;
         const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
           const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: any) => bowler.playerId === currentBowlerId)[0];
@@ -124,7 +121,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
         };
         await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
         socket.on('dismissedBatter',(data:{dismissedBatter:string[]})=>{
-          console.log('Dismissed batter received:', data);
         })
 
         setBattingStats((prevStats) =>
@@ -161,7 +157,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
           dismissal: editingPlayer.dismissal,
         });
   
-        console.log('Updated batting stats successfully:', response.data);
         
         async function getBowling(){
           try{
@@ -174,43 +169,32 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
         getBowling()
         
     socket.on('allBowlingStats',(data:{bowlingStats: any[]})=>{
-      console.log(data)
+      
     })
 
-
-        console.log(matchState.bowlerId)
         // Now, update the bowling stats based on currentBowlerId
         const currentBowlerId = matchState.bowlerId;
   
         if (currentBowlerId) {
-          // Get the current bowler's stats (assuming `getBowlingStats` is a function to fetch bowling data)
           const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
           const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: any) => bowler.playerId === currentBowlerId)[0];
-          console.log(currentBowlerStats)
           const addedRuns = currentBowlerStats ? pendingRuns + currentBowlerStats.runsConceded : pendingRuns;
-          // Update the bowler's stats
-          console.log(dismissal)
           const updatedBowlerStats = {
             ...currentBowlerStats,
             runsConceded: addedRuns, 
             teamId: matchDetails.secondTeamId,
-            overs:parseFloat(`${Math.floor(updatedBalls / 6)}.${updatedBalls % 6}`),// Add the runs scored by the batsman
-            wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissal ? 0 : 1):0, // Increment wickets if batsman is dismissed
-            economyRate: parseFloat((currentBowlerStats.runsConceded / updatedBalls).toFixed(2)), // Calculate the economy rate
+            overs:parseFloat(`${Math.floor(updatedBalls / 6)}.${updatedBalls % 6}`),
+            wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissal ? 0 : 1):0, 
+            economyRate: parseFloat((currentBowlerStats.runsConceded / updatedBalls).toFixed(2)), 
           };
-  
-          // Update the bowler's stats in the backend
-          console.log(currentBowlerId, updatedBowlerStats);
+
           await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
-  
-          console.log('Updated bowling stats successfully:', updatedBowlerStats);
-  
+
           // Emit the updated bowling stats via socket
           socket.emit('updateBowlingStats', updatedBowlerStats);
-  
+
           // Update the state with the new bowling stats
           socket.on('updateBowlingStats', (updatedBowlerStats: any) => {
-            console.log('Real-time bowling stats updated:', updatedBowlerStats);
           });
         }
   

@@ -37,8 +37,8 @@ router.get('/', async (req: Request, res: Response) => {
 
 // Post a new batting stat
 router.post('/', async (req: Request, res: Response) => {
-    const battingStats: BattingStat[] = req.body;  // Expect an array of objects
-    // Check if the body is an array
+    const battingStats: BattingStat[] = req.body;
+    console.log(battingStats)
     if (!Array.isArray(battingStats)) {
         res.status(400).json({ error: 'Request body should be an array of batting stats' });
         return;
@@ -46,7 +46,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     try {
         const createdStats = [];
-        // Iterate over each batting stat object in the array
         for (const stat of battingStats) {
             const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal } = stat;
 
