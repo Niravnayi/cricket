@@ -9,7 +9,8 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const scorecards = await prisma.scorecard.findMany({
-            include: { match: true },
+            include: { match: true,battingStats: true, bowlingStats: true, extras: true },
+
         });
         res.json(scorecards);
     } catch (error) {
@@ -38,9 +39,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 // Create a new scorecard
 router.post('/', async (req: Request, res: Response) => {
-    console.log(req.body)
     const { matchId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
-    console.log(matchId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers)
+
     if (matchId === undefined ||
         teamAScore === undefined ||
         teamBScore === undefined ||
@@ -68,7 +68,6 @@ router.post('/', async (req: Request, res: Response) => {
         io.emit('scoreCreate', newScorecard);
         res.status(201).json(newScorecard);
     } catch (error) {
-        console.log(error)
         res.status(500).json({ error: error });
     }
 });
@@ -77,7 +76,8 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
-    if (!teamAScore || !teamBScore || !teamAWickets || !teamBWickets || !teamAOvers || !teamBOvers) {
+
+    if (!teamAScore===undefined || !teamBScore===undefined || !teamAWickets===undefined || !teamBWickets===undefined || !teamAOvers===undefined || !teamBOvers===undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }

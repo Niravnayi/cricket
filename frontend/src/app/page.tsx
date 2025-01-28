@@ -47,6 +47,8 @@ const HomePage = () => {
   }
 
   return (
+
+
     <div className="bg-gray-50 min-h-screen py-10 px-4 sm:px-8">
       <header className="text-center pb-8">
         <motion.h1
@@ -230,5 +232,6 @@ const HomePage = () => {
     </div>
   );
 };
+
 
 export default HomePage;

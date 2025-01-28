@@ -22,8 +22,10 @@ export interface PlayerStats {
   sixes?: number;
   fours?: number;
   teamId?: number;
+  battingStatsId?:number
+  scorecardId?:number
+  playerId?:number
 }
-
 
 export interface Scorecard {
   teamAScore: number;
@@ -38,9 +40,6 @@ export interface Scorecard {
   extras?: Extras;
 }
 
-
-
-// Define the BattingStats type to match the expected shape
 export interface BattingStats {
   scorecardId: number;
   playerId: number;
@@ -49,7 +48,7 @@ export interface BattingStats {
   teamName: string;
   runs: number;
   balls: number;
-  battingStatsId:number;
+  battingStatsId?:number;
   fours: number;
   sixes: number;
   strikeRate: number;
@@ -76,6 +75,11 @@ export interface BowlingStats {
   overs: number;
   wickets: number;
   runsConceded: number;
+  maidens: number;
+  economyRate: number;
+  scorecardId: number;
+  playerId: number;
+  teamId: number;
 }
 
 export interface Extras {

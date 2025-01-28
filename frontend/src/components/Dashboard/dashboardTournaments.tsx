@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { fetchTournaments, deleteTournament, updateTournament, fetchTeamData, createTournament } from '@/server-actions/organizer/TournamentActions'; 
 import TournamentCard from '@/components/Dashboard/tournamentCard';
 import DashboadForm from '@/components/Dashboard/dashboardForm';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { Team, Tournament } from './types/dashboard';
+import { createTournament, deleteTournament, fetchOrganizerTournaments, updateTournament } from '@/server-actions/tournamentsActions';
+import { fetchTeamData } from '@/server-actions/teamsActions';
+
 
 const DashboardTournaments = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -16,9 +18,8 @@ const DashboardTournaments = () => {
 
   const fetchTournamentsData = async () => {
     try {
-      const tournamentData = await fetchTournaments(1);
+      const tournamentData = await fetchOrganizerTournaments(1);
       setTournaments(tournamentData);
-      console.log('Fetched tournaments:', tournamentData);
 
       const team = await fetchTeamData();
       setTeamData(team);

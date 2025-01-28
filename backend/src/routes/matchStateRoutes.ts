@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.get('/:matchId', async (req: Request, res: Response) => {
     const {matchId} = req.params;
-    console.log(matchId)
     
     try {
         // Fetch match state for the given matchId
@@ -76,9 +75,7 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.put('/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
-    console.log(req.body)
     const { dismissedBatterId, newBatterId, newBowlerId } = req.body;
-    console.log(dismissedBatterId, newBatterId, newBowlerId)
 
     try {
         // Check if the match state exists
@@ -89,41 +86,29 @@ router.put('/:matchId', async (req: Request, res: Response) => {
         // If match state doesn't exist, create a new state entry
         if (!matchState) {
             matchState = await prisma.matchState.create({
-                data: { matchId: Number(matchId), currentBatter1Id:dismissedBatterId, currentBatter2Id:newBatterId, currentBowlerId:newBowlerId },
+                data: { matchId: Number(matchId), currentBatter1Id: dismissedBatterId, currentBatter2Id: newBatterId, currentBowlerId: newBowlerId },
             });
-            return
+            return  // Return the newly created match state
         }
 
-        let updatedBatter1Id = matchState.currentBatter1Id;
-        let updatedBatter2Id = matchState.currentBatter2Id;
-        // Update batters based on the dismissed batter
-        if (dismissedBatterId === matchState.currentBatter1Id) {
-            updatedBatter1Id = newBatterId;  // New batter replaces dismissed batter 1
-        } else if (dismissedBatterId === matchState.currentBatter2Id) {
-            updatedBatter2Id = newBatterId;  // New batter replaces dismissed batter 2
-        } else {
-            res.status(400).json({ error: 'Dismissed batter is not currently batting' });
-            return
-        }
-
-        // Update the bowler
+        // Directly replace the batter IDs and the bowler
         const updatedMatchState = await prisma.matchState.update({
             where: { matchId: Number(matchId) },
             data: {
-                currentBatter1Id: updatedBatter1Id,
-                currentBatter2Id: updatedBatter2Id,
-                currentBowlerId: newBowlerId,
+                currentBatter1Id: newBatterId,  // Replace batter 1
+                currentBatter2Id: newBatterId,  // Replace batter 2 (assuming only one batter is replaced)
+                currentBowlerId: newBowlerId,  // Replace the bowler
             },
         });
 
         // Return updated match state
-        // io.emit('matchStateUpdated', updatedMatchState);
         res.json(updatedMatchState);
     } catch (error) {
         console.error('Error updating match state:', error);
         res.status(500).json({ error: 'Failed to update match state' });
     }
 });
+
 
 router.delete('/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;

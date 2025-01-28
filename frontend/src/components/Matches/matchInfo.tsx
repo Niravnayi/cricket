@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { MatchDetails } from './types/matchDetails';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { updateMatchStats,setScoreCard } from '@/server-actions/matchesActions';
 import socket from '@/utils/socket';
 import { Scorecard } from '../Dashboard/types/dashboard';
+import { setScoreCard } from '@/server-actions/scorecardActions';
+import { updateMatch } from '@/server-actions/matchesActions';
 
 interface MatchInfoProps {
   matchDetails: MatchDetails;
@@ -16,26 +17,13 @@ const MatchInfo: React.FC<MatchInfoProps> = ({ matchDetails, id }) => {
 
   
   const handleIsLive = async () => {
-    console.log(isLive)
-    const updatedMatch: MatchDetails = {
-      matchId: matchDetails.tournamentId ?? 0,
-      firstTeamId: matchDetails.firstTeamId,
-      secondTeamId: matchDetails.secondTeamId,
-      venue: matchDetails.venue,
-      dateTime: matchDetails.dateTime,
-      result: matchDetails.result,
-      isLive: isLive ? false : true,
-      isCompleted:matchDetails.isCompleted
-    }
-    console.log(updatedMatch)
-    await updateMatchStats({
+    await updateMatch({
       id,
       tournamentId: matchDetails.tournamentId ?? 0,
       firstTeamId: matchDetails.firstTeamId,
       secondTeamId: matchDetails.secondTeamId,
       venue: matchDetails.venue,
-      dateTime: new Date(matchDetails.dateTime),
-      isLive: isLive ? false : true
+      dateTime: new Date(matchDetails.dateTime).toISOString(),
     });
 
 
@@ -44,6 +32,8 @@ const MatchInfo: React.FC<MatchInfoProps> = ({ matchDetails, id }) => {
       teamBScore: 0,
       teamAWickets: 0,
       teamBWickets: 0,
+      teamAName: matchDetails.firstTeamName,
+      teamBName: matchDetails.secondTeamName,
       teamAOvers: 0,
       teamBOvers: 0
     }

@@ -4,7 +4,6 @@ import MatchInfo from "@/components/Matches/matchInfo";
 import ScorePanel from "@/components/Matches/scorePanel";
 import BattingStatsComponent from "@/components/Matches/battingStatsComponent";
 import BowlingStatsComponent from "@/components/Matches/bowlingStatsComponent";
-import MatchStatusComponent from "@/components/Matches/matchStatusComponent";
 import TeamSquadComponents from "./teamSquadComponents";
 import { MatchDetails } from "./types/matchDetails";
 import socket from "@/utils/socket";
@@ -21,7 +20,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
     const data = await fetchMatchById(id);
     setMatchDetails(data);
   };
-  
+
   useEffect(() => {
     fetchMatchDetails();
 
@@ -29,12 +28,12 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
     socket.on("matchUpdated", (updatedMatch: MatchDetails) => {
       setMatchDetails(updatedMatch);
     });
-    
+
     return () => {
       socket.off("matchUpdated");
     };
   }, [id]);
-  
+
   if (!matchDetails) {
     return (
       <div>
@@ -53,8 +52,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
       />
       <BattingStatsComponent matchDetails={matchDetails} />
       <BowlingStatsComponent matchDetails={matchDetails} />
-      <MatchStatusComponent matchDetails={matchDetails} />
-      <ScoreCardComponent id={id}/>
+      <ScoreCardComponent id={id} />
       <TeamSquadComponents id={id} />
     </div>
   );

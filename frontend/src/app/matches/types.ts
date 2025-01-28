@@ -3,7 +3,9 @@ export type BattingStats = {
   teamName: string;
   runs: number;
   balls: number;
-  matchId: number;
+  scorecardId:number;
+  matchId:number;
+
   fours: number;
   sixes: number;
   strikeRate: number;
@@ -15,9 +17,13 @@ export type BowlingStats = {
   teamName: string;
   overs: number;
   maidens: number;
+  teamId:number;
+  scorecardId:number;
+  playerId?:number;
   runsConceded: number;
+  economyRate?: number;
   wickets: number;
-  economy: number;
+  economyRate: number;
 };
 
 export type Scorecard = {
