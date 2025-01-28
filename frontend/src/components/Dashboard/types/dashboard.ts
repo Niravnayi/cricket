@@ -50,7 +50,7 @@ export interface Match {
 }
 
 export interface Scorecard {
-  scorecardId: number;
+  scorecardId?: number;
   teamAScore: number;
   teamBScore: number;
   teamAWickets: number;
