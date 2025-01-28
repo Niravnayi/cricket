@@ -3,7 +3,7 @@ export type BattingStats = {
   teamName: string;
   runs: number;
   balls: number;
-  matchId:number;
+  matchId: number;
   fours: number;
   sixes: number;
   strikeRate: number;
@@ -42,3 +42,21 @@ export type matchDetails = {
   result: string;
   scorecard: Scorecard;
 };
+
+export interface Match {
+  matchId: string;
+  firstTeamName: string;
+  secondTeamName: string;
+  venue: string;
+  dateTime: string;
+  isLive: boolean;
+  result: string;
+  scorecard: {
+    teamAScore: number;
+    teamAWickets: number;
+    teamAOvers: number;
+    teamBScore: number;
+    teamBWickets: number;
+    teamBOvers: number;
+  };
+}
