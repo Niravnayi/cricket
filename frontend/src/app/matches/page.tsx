@@ -112,27 +112,31 @@ const MatchesList = () => {
                 <p className="text-gray-700 text-sm mb-4">
                   Result: {match.result}
                 </p>
-                <h3 className="text-lg mt-2 font-bold text-center">
-                  Scorecard:
-                </h3>
-                <div className="flex justify-between items-center mt-2 text-sm">
-                  <div>
-                    <p className="font-semibold">{match.firstTeamName}:</p>
-                    <p>
-                      {match.scorecard.teamAScore}/
-                      {match.scorecard.teamAWickets} (
-                      {match.scorecard.teamAOvers} overs)
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">{match.secondTeamName}:</p>
-                    <p>
-                      {match.scorecard.teamBScore}/
-                      {match.scorecard.teamBWickets} (
-                      {match.scorecard.teamBOvers} overs)
-                    </p>
-                  </div>
-                </div>
+                {match.scorecard && (
+                  <>
+                    <h3 className="text-lg mt-2 font-bold text-center">
+                      Scorecard:
+                    </h3>
+                    <div className="flex justify-between items-center mt-2 text-sm">
+                      <div>
+                        <p className="font-semibold">{match.firstTeamName}:</p>
+                        <p>
+                          {match.scorecard.teamAScore}/
+                          {match.scorecard.teamAWickets} (
+                          {match.scorecard.teamAOvers} overs)
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-semibold">{match.secondTeamName}:</p>
+                        <p>
+                          {match.scorecard.teamBScore}/
+                          {match.scorecard.teamBWickets} (
+                          {match.scorecard.teamBOvers} overs)
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </Link>
             </motion.li>
           ))}
