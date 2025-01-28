@@ -7,6 +7,8 @@ import Link from "next/link";
 
 const MatchesList = () => {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
+  const [activeTab, setActiveTab] = useState("live"); // Tabs: live, scheduled, completed
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -14,6 +16,7 @@ const MatchesList = () => {
       try {
         const response = await axiosClient.get("/matches");
         setMatches(response.data);
+        filterMatches("live", response.data); // Default to live matches
       } catch (err) {
         setError("Failed to fetch matches data. Please try again later.");
       }
@@ -22,6 +25,27 @@ const MatchesList = () => {
     fetchMatches();
   }, []);
 
+  const filterMatches = (tab: string, matchesData: Match[] = matches) => {
+    if (tab === "live") {
+      setFilteredMatches(matchesData.filter((match) => match.isLive));
+    } else if (tab === "scheduled") {
+      setFilteredMatches(
+        matchesData.filter(
+          (match) => new Date(match.dateTime) > new Date() && !match.isLive
+        )
+      );
+    } else if (tab === "completed") {
+      setFilteredMatches(
+        matchesData.filter((match) => !match.isLive && new Date(match.dateTime) <= new Date())
+      );
+    }
+  };
+
+  const handleTabClick = (tab: string) => {
+    setActiveTab(tab);
+    filterMatches(tab);
+  };
+
   if (error) {
     return <p className="text-red-500 text-center mt-4">{error}</p>;
   }
@@ -29,16 +53,35 @@ const MatchesList = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">
-        Live Matches
+       All Matches
       </h1>
-      {matches.length > 0 ? (
+
+      {/* Tabs */}
+      <div className="flex justify-center mb-6 space-x-4">
+        {["live", "scheduled", "completed"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => handleTabClick(tab)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === tab
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)} Matches
+          </button>
+        ))}
+      </div>
+
+      {/* Matches List */}
+      {filteredMatches.length > 0 ? (
         <motion.ul
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {matches.map((match) => (
+          {filteredMatches.map((match) => (
             <motion.li
               key={match.matchId}
               className="bg-white border p-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300"
@@ -96,7 +139,7 @@ const MatchesList = () => {
         </motion.ul>
       ) : (
         <p className="text-center text-xl font-semibold mt-8 text-blue-500 animate-pulse">
-          Loading matches...
+          No matches found for the selected tab.
         </p>
       )}
     </div>
