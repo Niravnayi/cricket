@@ -49,7 +49,7 @@ export interface BattingStats {
   teamName: string;
   runs: number;
   balls: number;
-  battingStatsId:number;
+  battingStatsId?:number;
   fours: number;
   sixes: number;
   strikeRate: number;
@@ -73,7 +73,7 @@ export interface Team {
 export interface BowlingStats {
   playerName: string;
   teamName: string;
-  overs: number;
+  overs: number;scorecardId:number;
   wickets: number;
   runsConceded: number;
 }

@@ -37,11 +37,12 @@ const TournamentMatches = () => {
     <ul className="space-y-6 mt-4">
       {matches.map((match, index) => (
         <div key={index}>
-          <Link href={`/matches/${match.matchId}`} className="space-y-14">
             <li className="p-6 border rounded-lg bg-gray-100 shadow-md group transform transition-all hover:shadow-xl hover:-translate-y-2">
+          <Link href={`/matches/${match.matchId}`} className="space-y-14">
               <h5 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">
                 {match.firstTeamName} vs {match.secondTeamName}
               </h5>
+              </Link>
               <p className="text-gray-600 mt-2">Venue: {match.venue}</p>
               <p className="text-gray-600">
                 Date: {new Date(match.dateTime).toLocaleString()}
@@ -64,7 +65,6 @@ const TournamentMatches = () => {
                 )}
               </div>
             </li>
-          </Link>
         </div>
       ))}
     </ul>

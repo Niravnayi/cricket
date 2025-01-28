@@ -34,8 +34,7 @@ export async function fetchTeamPlayers({ firstTeamId, secondTeamId }: { firstTea
   }
 }
 
-export async function updateBattingStats({ updateBatting, battingStatsId }: { scorecardId:number,playerId:number,teamId:number,playerName:string,teamName:string,runs:number,balls:number,fours:number,sixes:number,strikeRate:number,dismissal:string, battingStatsId: number }) {
-  const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal } = updateBatting;
+export async function updateBattingStats({ scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal, battingStatsId }: { scorecardId:number,playerId:number,teamId:number,playerName:string,teamName:string,runs:number,balls:number,fours:number,sixes:number,strikeRate:number,dismissal:string, battingStatsId: number }) {
   const response = await axiosClient.put(`/batting-stats/${battingStatsId}`, {
     scorecardId,
   playerId,
@@ -122,6 +121,16 @@ export async function updateScoreCard({ scorecardId, Scorecard }: { scorecardId:
   const response = await axiosClient.put(`/scorecards/${scorecardId}`, {
     scorecardId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers
   })
+  return response.data
+}
+
+export async function getScoreCard(){
+  const response = await axiosClient.get('/scorecards')
+  return response.data
+}
+
+export async function getScoreCardbyId({scorecardId}: {scorecardId: number}){
+  const response = await axiosClient.get(`/scorecards/${scorecardId}`)
   return response.data
 }
 
