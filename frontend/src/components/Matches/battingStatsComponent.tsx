@@ -1,24 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import socket from '@/utils/socket';
 import axiosClient from '@/utils/axiosClient';
-import { MatchDetails } from './types/matchDetails';
-import { getBattingStats, getMatchState, getBowlingStats } from '@/server-actions/matchesActions';
+import { MatchDetails, PlayerStats } from './types/matchDetails';
 import { BowlingStats } from '@/app/matches/types';
-
-interface PlayerStats {
-  dismissal: string;
-  sixes: number;
-  fours: number;
-  teamId: number;
-  playerId: number;
-  scorecardId: number;
-  playerName: string;
-  teamName: string;
-  battingStatsId: number;
-  runs: number;
-  balls: number;
-  id: number;
-}
+import { getMatchState } from '@/server-actions/matchStateActions';
+import { getBattingStats } from '@/server-actions/battingStatsActions';
+import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
 
 interface BattingStatsComponentProps {
   matchDetails: MatchDetails;
@@ -31,12 +18,11 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
   const [dismissal, setDismissal] = useState<string | null>(null)
   interface MatchState {
     bowlerId: number;
-    // Add other properties of matchState if needed
   }
 
   const [matchState, setMatchState] = useState<MatchState | null>(null);
 
-  // Fetch initial data for batting stats
+
   useEffect(() => {
     async function fetchBattingStats() {
       try {
@@ -68,18 +54,11 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
 
     getMatchStats()
 
-
-
-
-
-    // Listen for real-time updates via socket
     socket.on('fetchMatch', (updatedMatchState: MatchDetails) => {
 
       if (updatedMatchState.scorecard?.battingStats) {
         setBattingStats((prevStats) => {
           const updatedStats = updatedMatchState.scorecard?.battingStats;
-
-          // Merge real-time data with the current state
           return prevStats.map((player) => {
             const updatedPlayer = updatedStats?.find(
               (updated) => updated.battingStatsId === player.battingStatsId
@@ -111,25 +90,25 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
     if (dismissalMethod) {
       try {
         const teamId = player.teamName === matchDetails.firstTeamName
-        ? matchDetails.firstTeamId
-        : matchDetails.secondTeamId;
+          ? matchDetails.firstTeamId
+          : matchDetails.secondTeamId;
         await axiosClient.put(`/batting-stats/${player.battingStatsId}`, {
           ...player,
           dismissal: dismissalMethod,
           teamId,
         });
-        
-        
+
+
         const currentBowlerId = matchState?.bowlerId;
         const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
         const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: BowlingStats) => bowler.playerId === currentBowlerId)[0];
         const teamId1 = currentBowlerStats.teamName === matchDetails.firstTeamName
-        ? matchDetails.firstTeamId
-        : matchDetails.secondTeamId;
+          ? matchDetails.firstTeamId
+          : matchDetails.secondTeamId;
         const updatedBowlerStats = {
           ...currentBowlerStats,
           teamId1,
-          wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissalMethod ? 0 : 1) : 0, // Increment wickets if batsman is dismissed
+          wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissalMethod ? 0 : 1) : 0,
         };
         await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
         socket.on('dismissedBatter', () => {
@@ -156,9 +135,9 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
     if (editingPlayer) {
       const updatedRuns = editingPlayer.runs + pendingRuns;
       const teamId = editingPlayer.teamName === matchDetails.firstTeamName
-      ? matchDetails.firstTeamId
-      : matchDetails.secondTeamId;
-      const updatedBalls = editingPlayer.balls + 1; 
+        ? matchDetails.firstTeamId
+        : matchDetails.secondTeamId;
+      const updatedBalls = editingPlayer.balls + 1;
       try {
         await axiosClient.put(`/batting-stats/${editingPlayer.battingStatsId}`, {
           scorecardId: editingPlayer.scorecardId,
@@ -198,10 +177,13 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
           const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: BowlingStats) => bowler.playerId === currentBowlerId)[0];
           const addedRuns = currentBowlerStats ? pendingRuns + currentBowlerStats.runsConceded : pendingRuns;
           console.log(updatedBalls)
+          const teamId = editingPlayer.teamName === matchDetails.firstTeamName
+            ? matchDetails.firstTeamId
+            : matchDetails.secondTeamId;
           const updatedBowlerStats = {
             ...currentBowlerStats,
             runsConceded: addedRuns,
-            teamId: matchDetails.secondTeamId,
+            teamId,
             overs: parseInt(`${Math.floor(updatedBalls / 6)}.${updatedBalls % 6}`),
             wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissal ? 0 : 1) : 0,
             economyRate: parseInt((currentBowlerStats.runsConceded / updatedBalls).toFixed(2)),
@@ -236,8 +218,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
       };
     }
   };
-
-
 
   return (
     <div className="grid grid-cols-2 gap-6 p-6">

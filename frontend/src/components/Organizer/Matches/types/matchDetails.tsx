@@ -26,8 +26,8 @@ export type BattingStats = {
     teamBWickets: number;
     teamAOvers: number;
     teamBOvers: number;
-    battingStats: BattingStats[];
-    bowlingStats: BowlingStats[];
+    battingStats?: BattingStats[];
+    bowlingStats?: BowlingStats[];
   };
   
   export type matchDetails = {

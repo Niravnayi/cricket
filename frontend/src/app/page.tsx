@@ -3,7 +3,7 @@ import SignOutButton from './(auth)/signout/page'
 
 const page = () => {
   return (
-    <div><SignOutButton/></div>
+    <div>Page</div>
     
   )
 }
