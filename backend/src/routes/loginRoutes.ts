@@ -6,8 +6,7 @@ const router = express.Router();
 
 router.post('/login', async (req: Request, res: Response) => {
     const { email, password, role } = req.body;
-    console.log(email,password,role)
-
+    
     if (!email || !password || !role) {
         res.status(400).json({ error: 'Email, password, and role are required' });
         return 

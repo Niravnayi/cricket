@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { fetchTournamentMatches, deleteMatch } from "@/server-actions/organizer/specificMatchAction";
+
 import { Match } from "@/components/Organizer/Tournament/types/tournamentType";
 import MatchModal from "@/components/Organizer/Tournament/MatchModal";
 import Link from "next/link";
+import { deleteMatch, fetchTournamentMatches } from "@/server-actions/matchesActions";
 
 export default function TournamentComponent({ tournamentId }: { tournamentId: number }) {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -58,9 +59,10 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
         return false;
       })
       .map((match) => (
-        <Link href={`/matches/${match.matchId}`} key={match.matchId}>
         <div key={match.matchId} className="bg-white shadow-lg rounded-lg p-4 mb-4 border">
+          <Link href={`/matches/${match.matchId}`} key={match.matchId}>
           <h5 className="text-lg font-semibold text-gray-800">{`${match.firstTeamName} vs ${match.secondTeamName}`}</h5>
+        </Link> 
           <p className="text-sm text-gray-600">{`Venue: ${match.venue}`}</p>
           <p className="text-sm text-gray-600">{`Date: ${new Date(match.dateTime).toLocaleString()}`}</p>
           <p className="text-sm text-gray-600">{`Result: ${match.result}`}</p>
@@ -73,7 +75,6 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
             </Button>
           </div>
         </div>
-        </Link>
       ));
   };
 

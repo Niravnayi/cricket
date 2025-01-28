@@ -13,7 +13,6 @@ const TournamentComponent = () => {
       try {
         const data = await fetchTournaments();
         setTournaments(data);
-        console.log('Fetched Tournaments:', data);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch tournaments');

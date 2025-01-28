@@ -18,7 +18,6 @@ router.get('/', async (req: Request, res: Response) => {
     } catch (error) {
         res.status(500).json({ error: 'Error fetching matches' });
     }
-   
 });
 
 // Get a specific match
@@ -46,7 +45,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create a new match
 router.post('/', async (req: Request, res: Response) => {
     const { tournamentId, firstTeamId, secondTeamId, venue, dateTime }: Match = req.body;
-    console.log(firstTeamId,secondTeamId)
+
     try {
         // Fetch team names for the given team IDs
         const [firstTeam, secondTeam] = await Promise.all([
@@ -152,6 +151,12 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
+        const deleteScorecard = await prisma.scorecard.deleteMany({
+            where: { 
+                matchId: parseInt(id) 
+            },
+        })
+        
         const deletedMatch = await prisma.matches.delete({
             where: { 
                 matchId: parseInt(id) 
