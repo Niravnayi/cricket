@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.get('/:matchId', async (req: Request, res: Response) => {
     const {matchId} = req.params;
-    console.log(matchId)
     
     try {
         // Fetch match state for the given matchId

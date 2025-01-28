@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { createMatch, updateMatch, fetchTournamentMatches } from "@/server-actions/organizer/specificMatchAction";
-import { fetchTournamentById } from "@/server-actions/organizer/TournamentActions";
 import { Match } from "@/components/Organizer/Tournament/types/tournamentType";
 import { Team } from "@/components/Tournament/types/tournament";
+import { createMatch, fetchTournamentMatches, updateMatch } from "@/server-actions/matchesActions";
+import { fetchTournamentById } from "@/server-actions/tournamentsActions";
 
 interface MatchModalProps {
   tournamentId: number;
@@ -63,8 +63,10 @@ const MatchModal: React.FC<MatchModalProps> = ({tournamentId, editingMatch, onCl
 
     try {
       setLoading(true);
-      if (editingMatch) {
-        await updateMatch(editingMatch.matchId, tournamentId, teamAId, teamBId, venue, date);
+
+      const id = editingMatch?.matchId
+      if (editingMatch && id) {
+        await updateMatch({id, tournamentId, firstTeamId: teamAId, secondTeamId: teamBId, venue, dateTime:date});
       } 
       else {
         await createMatch(tournamentId, teamAId, teamBId, venue, date);

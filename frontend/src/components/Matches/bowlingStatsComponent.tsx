@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import socket from '@/utils/socket';
 import axiosClient from '@/utils/axiosClient';
-
 import { MatchDetails } from './types/matchDetails';
-import { getBowlingStats } from '@/server-actions/matchesActions';
+import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
 
 interface BowlingStats {
   playerName: string;
@@ -52,7 +51,7 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
     }
     getBowling();
 
-    socket.on("allBowlingStats", (data: BowlingStats[]) => {
+    socket.on("allBowlingStats", (data: { bowlingStats: BowlingStats[] }) => {
       setBowlingStats(data.bowlingStats);
     });
 
@@ -62,10 +61,9 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
     };
   }, [matchDetails]);
 
-  // Get the latest bowler (last one in the list)
   const latestBowler = bowlingStats
     .filter((bowler) => bowler.teamName === matchDetails.firstTeamName || bowler.teamName === matchDetails.secondTeamName)
-    .pop();  // `pop()` will return the last element of the array, which is the most recent bowler
+    .pop();  
 
   return (
     <div className="grid grid-cols-2 gap-6 p-6">

@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MatchDetails, Scorecard } from "./types/matchDetails";
-import { getBattingStats,updateScoreCard,getScoreCardbyId } from "@/server-actions/matchesActions";
 import socket from "@/utils/socket";
-import { BattingStats } from "@/app/matches/types";
+import { getBattingStats } from "@/server-actions/battingStatsActions";
+import { getScoreCardbyId, updateScoreCard } from "@/server-actions/scorecardActions";
 
 interface ScorePanelProps {
   matchDetails: MatchDetails;
   isOrganizer: boolean;
-  fetchMatchDetails: () => void; 
+  fetchMatchDetails: () => void;
 }
 
 const ScorePanel: React.FC<ScorePanelProps> = ({
@@ -15,7 +15,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   isOrganizer,
   fetchMatchDetails,
 }) => {
-  const isScorecardCreatedRef = useRef(false); 
+  const isScorecardCreatedRef = useRef(false);
   const [teamAScore, setTeamAScore] = useState(0);
   const [teamAovers, setTeamAovers] = useState("0");
   const [teamAWickets] = useState(0);
@@ -31,7 +31,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   useEffect(() => {
     const manageScorecard = async () => {
       const matchId = matchDetails.matchId;
-  
+
       if (!matchDetails.scorecard && matchDetails.isLive && !isScorecardCreatedRef.current) {
         const newScorecard = {
           teamAScore: 0,
@@ -41,37 +41,37 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
           teamAOvers: 0,
           teamBOvers: 0,
         };
-  
+
         socket.emit("createScorecard", { matchId, Scorecard: newScorecard });
         isScorecardCreatedRef.current = true;
         fetchMatchDetails();
 
-        const fetchBattingStats = async () => {
-          const stats = await getBattingStats();
-          console.log(stats);  
-        };
-        fetchBattingStats();
+
       }
     };
-  
-    if (isOrganizer && matchDetails.isLive) {
-      manageScorecard();
-    } else {
-      isScorecardCreatedRef.current = false;
-    }
-    console.log(matchDetails.scorecard?.scorecardId)
-    socket.on("teamAUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number }) => {
-      if (matchDetails.scorecard?.scorecardId === data.scorecardId) {
+
+    manageScorecard()
+
+
+    const fetchBattingStats = async () => {
+      const stats = await getBattingStats();
+      console.log(stats);
+    };
+    fetchBattingStats();
+    socket.on("teamAUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number[] }) => {
+      console.log('team A Score Panel Socket')
+      if (matchDetails.scorecard?.scorecardId && data.scorecardId.includes(matchDetails.scorecard?.scorecardId)) {
         const totalRuns = data.runs.reduce((sum, run) => sum + run, 0);
         const totalBalls = data.overs.reduce((sum, ball) => sum + ball, 0);
-        console.log('set data',data.runs)
+        console.log('set data', data.runs)
         setTeamAScore(totalRuns);
         setTeamAovers(calculateOvers(totalBalls));
       }
     });
 
-    socket.on("teamBUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number }) => {
-      if (matchDetails.scorecard?.scorecardId === data.scorecardId) {
+    socket.on("teamBUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number[] }) => {
+      console.log('team B Score Panel Socket')
+      if (matchDetails.scorecard?.scorecardId && data.scorecardId.includes(matchDetails.scorecard?.scorecardId)) {
         const totalRuns = data.runs.reduce((sum, run) => sum + run, 0);
         const totalBalls = data.overs.reduce((sum, ball) => sum + ball, 0);
         console.log(totalRuns)
@@ -80,19 +80,19 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
       }
     });
 
-    // Socket event listener for updates to the batting stats
-    socket.on("updatedBattingStats", (updatedStats: BattingStats) => {
-      if (updatedStats.matchId === matchDetails.matchId) {
-        fetchMatchDetails();
-      }
-    });
+    // // Socket event listener for updates to the batting stats
+    // socket.on("updatedBattingStats", (updatedStats: BattingStats) => {
+    //   if (updatedStats.matchId === matchDetails.matchId) {
+    //     fetchMatchDetails();
+    //   }
+    // });
 
     return () => {
       socket.off("teamAUpdate");
       socket.off("teamBUpdate");
-      socket.off("updatedBattingStats"); // Ensure cleanup of the listener
+      // socket.off("updatedBattingStats"); // Ensure cleanup of the listener
     };
-    
+
   }, [matchDetails, isOrganizer, fetchMatchDetails]);
 
   const updateScorecard = async () => {
@@ -107,8 +107,9 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
         teamAOvers: parseFloat(teamAovers),
         teamBOvers: parseFloat(teamBovers),
       };
+      console.log(Scorecard)
       await updateScoreCard({ scorecardId, Scorecard });
-      socket.emit("updateScorecard", {scorecardId, Scorecard });
+      // socket.emit("updateScorecard", {scorecardId, Scorecard });
     }
   };
 
@@ -118,7 +119,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
       setScorecardId(response);
       console.log(response);
     }
-    
+
   }
 
   useEffect(() => {

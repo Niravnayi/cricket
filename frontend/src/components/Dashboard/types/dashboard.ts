@@ -57,4 +57,6 @@ export interface Scorecard {
   teamBWickets: number;
   teamAOvers: number;
   teamBOvers: number;
+  teamAName?:string;
+  teamBName?:string;
 }

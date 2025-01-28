@@ -5,9 +5,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axiosClient from "@/utils/axiosClient";
 import { BattingStats, MatchDetails } from '@/app/organizer/matches/types/matchType';
-import { fetchMatchDetails } from '@/server-actions/organizerMatchActions'; 
-import { fetchTeamData } from '@/server-actions/organizer/TournamentActions';
 import { Team } from '@/components/Matches/types/matchDetails';
+import { fetchMatchById } from '@/server-actions/matchesActions';
+import { fetchTeamData } from '@/server-actions/teamsActions';
 
 interface Id {
   id: number;
@@ -23,7 +23,7 @@ const MatchPage = ({ id }: Id) => {
 
   // Call the async function directly and set the match data once it is fetched
   const fetchData = async () => {
-    const matchData = await fetchMatchDetails(id.toString());
+    const matchData = await fetchMatchById(id);
     const teamData = await fetchTeamData();
     setMatch(matchData);
     setTeam(teamData);
@@ -69,19 +69,14 @@ const MatchPage = ({ id }: Id) => {
   };
   const handleSave = async (playerName: string) => {
     const updatedPlayerStats = updatedStats[playerName];
-    console.log(updatedPlayerStats); // Log to check the updated player stats
-    console.log(match);
   
     if (!updatedPlayerStats) {
       console.error('No stats available to save for', playerName);
       return;
     }
   
-    // Find the player object by playerName to extract playerId
-    console.log(team)
     const player = match.scorecard.battingStats.find((player) => player.playerName === playerName);
-    console.log(player)
-    console.log(updatedPlayerStats)
+
     if (!player) {
       console.error(`Player with name ${playerName} not found`);
       return;

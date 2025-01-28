@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
   fetchMatchById,
-  fetchTeamPlayers,
-  getBattingStats, getScoreCard
 } from '../../server-actions/matchesActions';
-import { Team, MatchDetails, BattingStats, Scorecard } from './types/matchDetails';
+import { getBattingStats } from '../../server-actions/battingStatsActions';
+
+import { MatchDetails, BattingStats, BowlingStats } from './types/matchDetails';
+
 import socket from '@/utils/socket';
+import { fetchTeamPlayers } from '@/server-actions/teamPlayersActions';
+import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
 
 interface MatchPageProps {
   id: number;
@@ -13,10 +16,8 @@ interface MatchPageProps {
 
 const ScoreCardComponent = ({ id }: MatchPageProps) => {
   const [matchDetails, setMatchDetails] = useState<MatchDetails>();
-  const [firstTeam, setFirstTeam] = useState<Team[]>([]);
-  const [secondTeam, setSecondTeam] = useState<Team[]>([]);
-  const [scorecard, setScorecard] = useState<Scorecard[]>();
   const [battingStats, setBattingStats] = useState<BattingStats[]>([]);
+  const [bowlingStats, setBowlingStats] = useState<BowlingStats[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,11 +30,11 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
           secondTeamId: matchDetails.secondTeamId,
         });
 
-        setFirstTeam(playersData.firstTeam);
-        setSecondTeam(playersData.secondTeam);
+        const battingData = await getBattingStats();
+        setBattingStats(battingData);
 
-        const stats = await getBattingStats();
-        setBattingStats(stats);
+        const bowlingData = await getBowlingStats();
+        setBowlingStats(bowlingData);
       } catch (error) {
         console.log('Error fetching data:', error);
       }
@@ -41,63 +42,29 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
 
     fetchData();
 
-    const fetchScoreCard = async () => {
-      const response = await getScoreCard();
-      setScorecard(response)
-      console.log(response)
-    }
-
-    fetchScoreCard()
-
-    socket.on('dismissedBatter', (data: { dismissedBatters: string[] }) => {
-      setBattingStats((prevStats) =>
-        prevStats.map((batsman, index) => ({
-          ...batsman,
-          dismissal: data.dismissedBatters[index] || batsman.dismissal,
-        }))
-      );
+    socket.on('allBattingStats', ({ battingStats }: { battingStats: BattingStats[] }) => {
+      setBattingStats(battingStats);
     });
-    async function getAllBattingStats() {
-      await getBattingStats()
-    }
-    getAllBattingStats()
-    socket.on('allBattingStats', ({ battingStats }: BattingStats[]) => {
-      setBattingStats((prevStats) => {
-        const existingStatsMap = new Map(
-          prevStats.map((batsman) => [batsman.playerId, batsman])
-        );
 
-        const updatedStats = battingStats.map((newStat: BattingStats) => {
-          const existingStat = existingStatsMap.get(newStat.playerId);
-          if (existingStat) {
-            // Update the existing stat
-            return {
-              ...existingStat,
-              ...newStat, // Use new stat values to override existing ones
-            };
-          } else {
-            // Add new stat if it doesn't exist
-            return newStat;
-          }
-        });
-
-        // Return the combined list of updated and new stats
-        return updatedStats;
-      });
+    socket.on('allBowlingStats', ({ bowlingStats }: { bowlingStats: BowlingStats[] }) => {
+      setBowlingStats(bowlingStats);
     });
 
     return () => {
-      socket.off('dismissedBatter');
       socket.off('allBattingStats');
+      socket.off('allBowlingStats');
     };
   }, [id]);
 
+  const renderBattingStats = (teamName: string) => {
+    const teamBattingStats = battingStats.filter(
+      (stat) => stat.teamName === teamName
+    );
 
-  const renderScorecard = (team: Team[], teamName: string) => {
     return (
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-        <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">
-          {teamName} Scorecard
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
+        <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">  
+          {teamName} Batting Stats
         </h3>
         <table className="table-auto border-collapse border border-gray-300 w-full">
           <thead>
@@ -107,49 +74,57 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
               <th className="border p-3">Balls</th>
               <th className="border p-3">4s</th>
               <th className="border p-3">6s</th>
-              <th className="border p-3">Strike Rate</th>
-              <th className="border p-3">Dismissal</th>
-
+              <th className="border p-3">SR</th>
             </tr>
           </thead>
           <tbody>
-            {scorecard
-              ?.filter((score) => score.scorecardId === matchDetails?.scorecard?.scorecardId)
-              .map((score) => (
-                
-                <React.Fragment key={score.scorecardId}>
-                  {score.battingStats?.map((playerStats: BattingStats) => {
-                    return (
-                      <tr key={playerStats.playerId} className="hover:bg-gray-100">
-                        <td className="border-b p-3">{playerStats.playerName}</td>
-                        {playerStats ? (
-                          <>
-                            <td className="border-b p-3">{playerStats.runs}</td>
-                            <td className="border-b p-3">{playerStats.balls}</td>
-                            <td className="border-b p-3">{playerStats.fours}</td>
-                            <td className="border-b p-3">{playerStats.sixes}</td>
-                            <td className="border-b p-3">
-                              {playerStats.strikeRate.toFixed(2)}
-                            </td>
-                            <td className="border-b p-3">{playerStats.dismissal}</td>
-                          </>
-                        ) : (
-                          <td
-                            className="border-b p-3 text-center"
-                            colSpan={5}
-                            style={{ color: 'gray' }}
-                          >
-                            Yet to Bat
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                </React.Fragment>
-              ))}
+            {teamBattingStats.map((player) => (
+              <tr key={player.battingStatsId}>
+                <td className="border p-3">{player.playerName}</td>
+                <td className="border p-3 text-center">{player.runs}</td>
+                <td className="border p-3 text-center">{player.balls}</td>
+                <td className="border p-3 text-center">{player.fours}</td>
+                <td className="border p-3 text-center">{player.sixes}</td>
+                <td className="border p-3 text-center">{player.strikeRate}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+  const renderBowlingStats = (teamName: string) => {
+    const teamBowlingStats = bowlingStats.filter(
+      (stat) => stat.teamName === teamName
+    );
 
-
-
+    return (
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
+        <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">
+          {teamName} Bowling Stats
+        </h3>
+        <table className="table-auto border-collapse border border-gray-300 w-full">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-3 text-left">Bowler</th>
+              <th className="border p-3">Overs</th>
+              <th className="border p-3">Maidens</th>
+              <th className="border p-3">Runs</th>
+              <th className="border p-3">Wickets</th>
+              <th className="border p-3">Economy</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teamBowlingStats.map((bowler) => (
+              <tr key={bowler.playerId} className="hover:bg-gray-100">
+                <td className="border-b p-3">{bowler.playerName}</td>
+                <td className="border-b p-3 text-center">{bowler.overs}</td>
+                <td className="border-b p-3 text-center">{bowler.maidens}</td>
+                <td className="border-b p-3 text-center">{bowler.runsConceded}</td>
+                <td className="border-b p-3 text-center">{bowler.wickets}</td>
+                <td className="border-b p-3 text-center">{bowler.economyRate}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -164,11 +139,16 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
     <div className="my-8 px-6">
       <h2 className="text-3xl font-semibold text-center mb-6">Scorecard</h2>
       <div className="space-y-6">
-        {matchDetails.firstTeamName && matchDetails.secondTeamName && <div>
-          {renderScorecard(firstTeam, matchDetails.firstTeamName)}
-          {renderScorecard(secondTeam, matchDetails.secondTeamName)}
-        </div>}
+        {matchDetails.firstTeamName && matchDetails.secondTeamName && (
+          <div>
 
+            {renderBattingStats(matchDetails.firstTeamName)}
+            {renderBowlingStats(matchDetails.secondTeamName)}
+
+            {renderBattingStats(matchDetails.secondTeamName)}
+            {renderBowlingStats(matchDetails.firstTeamName)}
+          </div>
+        )}
       </div>
     </div>
   );

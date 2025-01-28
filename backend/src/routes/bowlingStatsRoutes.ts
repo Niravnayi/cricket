@@ -20,7 +20,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Post a new bowling stat
 router.post('/', async (req, res) => {
     const { scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
-    console.log(scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate)
+
     if (!scorecardId==undefined || !playerId==undefined || !teamId==undefined || !overs==undefined || !maidens==undefined || !runsConceded==undefined || !wickets==undefined || !economyRate==undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return
@@ -70,8 +70,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { bowlingStatsId,scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
-    console.log("bowling stats")
-    console.log(bowlingStatsId,scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate)
+
     if (!scorecardId==undefined || !playerId==undefined || !teamId==undefined || !overs==undefined || !maidens==undefined || !runsConceded==undefined || !wickets==undefined || !economyRate==undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return
