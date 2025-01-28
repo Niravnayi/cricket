@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   fetchMatchById,
   fetchTeamPlayers,
-  getBattingStats,
+  getBattingStats, getScoreCard
 } from '../../server-actions/matchesActions';
-import { Team, MatchDetails, BattingStats } from './types/matchDetails';
+import { Team, MatchDetails, BattingStats, Scorecard } from './types/matchDetails';
 import socket from '@/utils/socket';
 
 interface MatchPageProps {
@@ -15,6 +15,7 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
   const [matchDetails, setMatchDetails] = useState<MatchDetails>();
   const [firstTeam, setFirstTeam] = useState<Team[]>([]);
   const [secondTeam, setSecondTeam] = useState<Team[]>([]);
+  const [scorecard, setScorecard] = useState<Scorecard[]>();
   const [battingStats, setBattingStats] = useState<BattingStats[]>([]);
 
   useEffect(() => {
@@ -40,6 +41,14 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
 
     fetchData();
 
+    const fetchScoreCard = async () => {
+      const response = await getScoreCard();
+      setScorecard(response)
+      console.log(response)
+    }
+
+    fetchScoreCard()
+
     socket.on('dismissedBatter', (data: { dismissedBatters: string[] }) => {
       setBattingStats((prevStats) =>
         prevStats.map((batsman, index) => ({
@@ -48,40 +57,41 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
         }))
       );
     });
-    async function getAllBattingStats(){
-        await getBattingStats()
+    async function getAllBattingStats() {
+      await getBattingStats()
     }
     getAllBattingStats()
     socket.on('allBattingStats', ({ battingStats }: BattingStats[]) => {
-        setBattingStats((prevStats) => {
-          const existingStatsMap = new Map(
-            prevStats.map((batsman) => [batsman.playerId, batsman])
-          );
+      setBattingStats((prevStats) => {
+        const existingStatsMap = new Map(
+          prevStats.map((batsman) => [batsman.playerId, batsman])
+        );
 
-          const updatedStats = battingStats.map((newStat) => {
-            const existingStat = existingStatsMap.get(newStat.playerId);
-            if (existingStat) {
-              // Update the existing stat
-              return {
-                ...existingStat,
-                ...newStat, // Use new stat values to override existing ones
-              };
-            } else {
-              // Add new stat if it doesn't exist
-              return newStat;
-            }
-          });
-      
-          // Return the combined list of updated and new stats
-          return updatedStats;
+        const updatedStats = battingStats.map((newStat: BattingStats) => {
+          const existingStat = existingStatsMap.get(newStat.playerId);
+          if (existingStat) {
+            // Update the existing stat
+            return {
+              ...existingStat,
+              ...newStat, // Use new stat values to override existing ones
+            };
+          } else {
+            // Add new stat if it doesn't exist
+            return newStat;
+          }
         });
+
+        // Return the combined list of updated and new stats
+        return updatedStats;
       });
-      
+    });
+
     return () => {
       socket.off('dismissedBatter');
       socket.off('allBattingStats');
     };
   }, [id]);
+
 
   const renderScorecard = (team: Team[], teamName: string) => {
     return (
@@ -103,37 +113,43 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
             </tr>
           </thead>
           <tbody>
-            {team.map((player) => {
-              const playerStats = battingStats.find(
-                (stat) => stat.playerId === player.playerId
-              );
+            {scorecard
+              ?.filter((score) => score.scorecardId === matchDetails?.scorecard?.scorecardId)
+              .map((score) => (
+                
+                <React.Fragment key={score.scorecardId}>
+                  {score.battingStats?.map((playerStats: BattingStats) => {
+                    return (
+                      <tr key={playerStats.playerId} className="hover:bg-gray-100">
+                        <td className="border-b p-3">{playerStats.playerName}</td>
+                        {playerStats ? (
+                          <>
+                            <td className="border-b p-3">{playerStats.runs}</td>
+                            <td className="border-b p-3">{playerStats.balls}</td>
+                            <td className="border-b p-3">{playerStats.fours}</td>
+                            <td className="border-b p-3">{playerStats.sixes}</td>
+                            <td className="border-b p-3">
+                              {playerStats.strikeRate.toFixed(2)}
+                            </td>
+                            <td className="border-b p-3">{playerStats.dismissal}</td>
+                          </>
+                        ) : (
+                          <td
+                            className="border-b p-3 text-center"
+                            colSpan={5}
+                            style={{ color: 'gray' }}
+                          >
+                            Yet to Bat
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
 
-              return (
-                <tr key={player.playerId} className="hover:bg-gray-100">
-                  <td className="border-b p-3">{player.playerName}</td>
-                  {playerStats ? (
-                    <>
-                      <td className="border-b p-3">{playerStats.runs}</td>
-                      <td className="border-b p-3">{playerStats.balls}</td>
-                      <td className="border-b p-3">{playerStats.fours}</td>
-                      <td className="border-b p-3">{playerStats.sixes}</td>
-                      <td className="border-b p-3">
-                        {playerStats.strikeRate.toFixed(2)}
-                      </td>
-                      <td className="border-b p-3">{playerStats.dismissal}</td>
-                    </>
-                  ) : (
-                    <td
-                      className="border-b p-3 text-center"
-                      colSpan={5}
-                      style={{ color: 'gray' }}
-                    >
-                      Yet to Bat
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
+
+
           </tbody>
         </table>
       </div>
@@ -149,10 +165,10 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
       <h2 className="text-3xl font-semibold text-center mb-6">Scorecard</h2>
       <div className="space-y-6">
         {matchDetails.firstTeamName && matchDetails.secondTeamName && <div>
-            {renderScorecard(firstTeam, matchDetails.firstTeamName)}
-        {renderScorecard(secondTeam, matchDetails.secondTeamName)}
-            </div>}
-        
+          {renderScorecard(firstTeam, matchDetails.firstTeamName)}
+          {renderScorecard(secondTeam, matchDetails.secondTeamName)}
+        </div>}
+
       </div>
     </div>
   );

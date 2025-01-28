@@ -9,7 +9,8 @@ const router = express.Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const scorecards = await prisma.scorecard.findMany({
-            include: { match: true },
+            include: { match: true,battingStats: true, bowlingStats: true, extras: true },
+
         });
         res.json(scorecards);
     } catch (error) {
@@ -77,7 +78,8 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
-    if (!teamAScore || !teamBScore || !teamAWickets || !teamBWickets || !teamAOvers || !teamBOvers) {
+    console.log(teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers)
+    if (!teamAScore===undefined || !teamBScore===undefined || !teamAWickets===undefined || !teamBWickets===undefined || !teamAOvers===undefined || !teamBOvers===undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }
