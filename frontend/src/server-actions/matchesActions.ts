@@ -55,18 +55,20 @@ interface MatchUpdate {
   tournamentId: number;
   firstTeamId: number;
   secondTeamId: number;
+  isLive:boolean;
   venue: string;
   dateTime: string;
 }
 
 export const updateMatch = async (matchDetails: MatchUpdate) => {
   try {
-    const { id, tournamentId, firstTeamId, secondTeamId, venue, dateTime } = matchDetails;
+    const { id, tournamentId, firstTeamId, isLive,secondTeamId, venue, dateTime } = matchDetails;
 
     const response = await axiosClient.put(`/matches/${id}`, {
       tournamentId,
       firstTeamId,
       secondTeamId,
+      isLive,
       venue,
       dateTime,
     });

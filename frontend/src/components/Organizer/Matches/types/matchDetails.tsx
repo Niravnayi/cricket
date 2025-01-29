@@ -23,6 +23,8 @@ export type BattingStats = {
     teamAScore: number;
     teamBScore: number;
     teamAWickets: number;
+    teamAName:string;
+    teamBName:string;
     teamBWickets: number;
     teamAOvers: number;
     teamBOvers: number;

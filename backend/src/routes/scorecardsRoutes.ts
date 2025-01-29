@@ -39,14 +39,16 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 // Create a new scorecard
 router.post('/', async (req: Request, res: Response) => {
-    const { matchId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
-
+    const { matchId, teamAScore, teamAName,teamBName,teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers }: Scorecard = req.body;
+    console.log(matchId, teamAScore, teamAName,teamBName,teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers)
     if (matchId === undefined ||
         teamAScore === undefined ||
         teamBScore === undefined ||
         teamAWickets === undefined ||
         teamBWickets === undefined ||
         teamAOvers === undefined ||
+        teamAName === undefined ||
+        teamBName === undefined ||
         teamBOvers === undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
@@ -62,12 +64,15 @@ router.post('/', async (req: Request, res: Response) => {
                 teamBWickets,
                 teamAOvers,
                 teamBOvers,
+                teamAName,
+                teamBName
             },
         });
 
         io.emit('scoreCreate', newScorecard);
         res.status(201).json(newScorecard);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: error });
     }
 });
