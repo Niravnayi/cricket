@@ -46,7 +46,7 @@ const HomePage = () => {
         >
           <div>
             <span className="loader"></span>
-          </div>5
+          </div>
         </motion.div>
       </div>
     );
