@@ -76,7 +76,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
     const { dismissedBatterId, newBatterId, newBowlerId } = req.body;
-
+    console.log(dismissedBatterId, newBatterId, newBowlerId)
     try {
         // Check if the match state exists
         let matchState = await prisma.matchState.findUnique({
@@ -95,7 +95,7 @@ router.put('/:matchId', async (req: Request, res: Response) => {
         const updatedMatchState = await prisma.matchState.update({
             where: { matchId: Number(matchId) },
             data: {
-                currentBatter1Id: newBatterId,  // Replace batter 1
+                currentBatter1Id: dismissedBatterId,  // Replace batter 1
                 currentBatter2Id: newBatterId,  // Replace batter 2 (assuming only one batter is replaced)
                 currentBowlerId: newBowlerId,  // Replace the bowler
             },
@@ -127,7 +127,3 @@ router.delete('/:matchId', async (req: Request, res: Response) => {
 
 
 export default router
-
-function typeOf(matchId: string): any {
-    throw new Error("Function not implemented.");
-}

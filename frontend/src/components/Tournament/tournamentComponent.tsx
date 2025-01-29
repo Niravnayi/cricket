@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AnimatedArrow from './animatedArrow';
-import { fetchTournaments } from '@/server-actions/user/tournamentActions';
 import { Tournament } from '@/components/Tournament/types/tournament';
+import { fetchAllTournaments } from '@/server-actions/tournamentsActions';
 
 const TournamentComponent = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -11,7 +11,7 @@ const TournamentComponent = () => {
   useEffect(() => {
     const loadTournaments = async () => {
       try {
-        const data = await fetchTournaments();
+        const data = await fetchAllTournaments();
         setTournaments(data);
       } catch (err) {
         console.error(err);

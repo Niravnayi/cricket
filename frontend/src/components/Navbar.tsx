@@ -19,7 +19,7 @@ import { FaUserCircle } from "react-icons/fa";
 const Navbar = () => {
   const pathname = usePathname();
   const user = {
-    avatar: "", 
+    avatar: "",
     username: "John Doe",
     email: "johndoe@example.com",
   };
@@ -39,7 +39,7 @@ const Navbar = () => {
         {/* Links for Desktop */}
         <div className="hidden md:flex space-x-8">
           <Link
-            href="/all-matches"
+            href="/matches"
             className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
           >
             All Matches
@@ -53,10 +53,10 @@ const Navbar = () => {
           </Link>
 
           <Link
-            href="/leaderboard"
+            href="/dashboard"
             className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
           >
-            Leaderboard
+            Admin
           </Link>
         </div>
 

@@ -22,7 +22,6 @@ export type BowlingStats = {
   runsConceded: number;
   economyRate?: number;
   wickets: number;
-  economyRate: number;
 };
 
 export type Scorecard = {
@@ -47,3 +46,23 @@ export type matchDetails = {
   result: string;
   scorecard: Scorecard;
 };
+
+
+
+export interface Match {
+  matchId: string;
+  firstTeamName: string;
+  secondTeamName: string;
+  venue: string;
+  dateTime: string;
+  isLive: boolean;
+  result: string;
+  scorecard: {
+    teamAScore: number;
+    teamAWickets: number;
+    teamAOvers: number;
+    teamBScore: number;
+    teamBWickets: number;
+    teamBOvers: number;
+  };
+}

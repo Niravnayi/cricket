@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MatchDetails, Scorecard } from "./types/matchDetails";
+import { MatchDetails, Scorecard} from "./types/matchDetails";
 import socket from "@/utils/socket";
 import { getBattingStats } from "@/server-actions/battingStatsActions";
 import { getScoreCardbyId, updateScoreCard } from "@/server-actions/scorecardActions";
@@ -22,7 +22,8 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   const [teamBScore, setTeamBScore] = useState(0);
   const [teamBovers, setTeamBovers] = useState("0");
   const [teamBWickets] = useState(0);
-  const [scorecardId, setScorecardId] = useState<Scorecard | undefined>(undefined);
+  const [scoreCard,setScoreCard] = useState<Scorecard>();
+  const [loading, setLoading] = useState(true); // Loading state to handle initial data
 
   const calculateOvers = (balls: number) => {
     return `${Math.floor(balls / 6)}.${balls % 6}`;
@@ -45,54 +46,62 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
         socket.emit("createScorecard", { matchId, Scorecard: newScorecard });
         isScorecardCreatedRef.current = true;
         fetchMatchDetails();
-
-
       }
     };
 
-    manageScorecard()
-
+    manageScorecard();
 
     const fetchBattingStats = async () => {
       const stats = await getBattingStats();
       console.log(stats);
     };
     fetchBattingStats();
-    socket.on("teamAUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number[] }) => {
-      console.log('team A Score Panel Socket')
-      if (matchDetails.scorecard?.scorecardId && data.scorecardId.includes(matchDetails.scorecard?.scorecardId)) {
-        const totalRuns = data.runs.reduce((sum, run) => sum + run, 0);
-        const totalBalls = data.overs.reduce((sum, ball) => sum + ball, 0);
-        console.log('set data', data.runs)
-        setTeamAScore(totalRuns);
-        setTeamAovers(calculateOvers(totalBalls));
-      }
-    });
 
-    socket.on("teamBUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number[] }) => {
-      console.log('team B Score Panel Socket')
-      if (matchDetails.scorecard?.scorecardId && data.scorecardId.includes(matchDetails.scorecard?.scorecardId)) {
-        const totalRuns = data.runs.reduce((sum, run) => sum + run, 0);
-        const totalBalls = data.overs.reduce((sum, ball) => sum + ball, 0);
-        console.log(totalRuns)
-        setTeamBScore(totalRuns);
-        setTeamBovers(calculateOvers(totalBalls));
-      }
-    });
+    socket.on(
+      "teamUpdate",
+      (data: {
+        runs: number[];
+        overs: number[];
+        scorecardId: number[];
+        dismissedBatters: string[];
+        teamName: string[];
+      }) => {
+        if (
+          matchDetails.scorecard?.scorecardId &&
+          data.scorecardId.includes(matchDetails.scorecard?.scorecardId)
+        ) {
+          let teamATotalRuns = 0;
+          let teamATotalBalls = 0;
+          let teamBTotalRuns = 0;
+          let teamBTotalBalls = 0;
+          console.log(data.scorecardId,matchDetails.scorecard?.scorecardId);
+          data.teamName.forEach((team, index) => {
+            
+            if (team === matchDetails.firstTeamName && data.scorecardId[index] === matchDetails.scorecard?.scorecardId) {
+              console.log(matchDetails.scorecard?.scorecardId)
+              teamATotalRuns += data.runs[index];
+              teamATotalBalls += data.overs[index];
+            } else if (team === matchDetails.secondTeamName && data.scorecardId[index] === matchDetails.scorecard?.scorecardId) {
+              console.log(matchDetails.scorecard?.scorecardId)
+              teamBTotalRuns += data.runs[index];
+              teamBTotalBalls += data.overs[index];
+            }
+          });
 
-    // // Socket event listener for updates to the batting stats
-    // socket.on("updatedBattingStats", (updatedStats: BattingStats) => {
-    //   if (updatedStats.matchId === matchDetails.matchId) {
-    //     fetchMatchDetails();
-    //   }
-    // });
+          // Set loading to false after data arrives
+          setLoading(false);
+
+          setTeamAScore(teamATotalRuns);
+          setTeamAovers(calculateOvers(teamATotalBalls));
+          setTeamBScore(teamBTotalRuns);
+          setTeamBovers(calculateOvers(teamBTotalBalls));
+        }
+      }
+    );
 
     return () => {
-      socket.off("teamAUpdate");
-      socket.off("teamBUpdate");
-      // socket.off("updatedBattingStats"); // Ensure cleanup of the listener
+      socket.off("teamUpdate");
     };
-
   }, [matchDetails, isOrganizer, fetchMatchDetails]);
 
   const updateScorecard = async () => {
@@ -107,20 +116,19 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
         teamAOvers: parseFloat(teamAovers),
         teamBOvers: parseFloat(teamBovers),
       };
-      console.log(Scorecard)
+      console.log(Scorecard);
       await updateScoreCard({ scorecardId, Scorecard });
-      // socket.emit("updateScorecard", {scorecardId, Scorecard });
     }
   };
 
+  console.log( matchDetails.scorecard?.scorecardId)
   const fetchScoreCard = async () => {
     if (matchDetails.scorecard?.scorecardId !== undefined) {
       const response = await getScoreCardbyId({ scorecardId: matchDetails.scorecard.scorecardId });
-      setScorecardId(response);
-      console.log(response);
+      console.log(response)
+      setScoreCard(response);
     }
-
-  }
+  };
 
   useEffect(() => {
     if (matchDetails.isLive) {
@@ -128,40 +136,41 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
       fetchScoreCard();
     }
   }, [teamAScore, teamAovers, teamAWickets, teamBScore, teamBovers, teamBWickets]);
-
+console.log(scoreCard)
   return (
-    <div className="grid grid-cols-2 gap-8 p-8 bg-gray-100 rounded-lg shadow-lg">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-gradient-to-r from-blue-50 to-gray-100 rounded-lg shadow-xl">
       {/* First Team Panel */}
-      <div className="text-center">
-        <h3 className="text-xl font-semibold text-blue-900">{matchDetails.firstTeamName}</h3>
-        {matchDetails.isLive ? (
-          <div>
-            <p className="text-lg font-semibold text-gray-700">
-              {scorecardId?.teamAScore}/{scorecardId?.teamAWickets}
-            </p>
-            <p className="text-sm text-gray-500">Overs: {scorecardId?.teamAOvers}</p>
-          </div>
+      <div className="bg-white rounded-lg shadow-lg p-6 text-center transition-all transform hover:scale-105 hover:shadow-2xl duration-300">
+        <h3 className="text-2xl font-semibold text-blue-900 mb-4">{matchDetails.firstTeamName}</h3>
+        {loading ? (
+          <p className="text-xl font-medium text-gray-700 animate-pulse">Loading...</p>
         ) : (
-          <p className="text-sm text-gray-500">Match has not started yet</p>
+          <div>
+            <p className="text-3xl font-bold text-gray-800 transition-all duration-500 ease-in-out">
+              {scoreCard?.teamAScore}/{scoreCard?.teamAWickets}
+            </p>
+            <p className="text-md text-gray-500 transition-all duration-500 ease-in-out">Overs: {scoreCard?.teamAOvers}</p>
+          </div>
         )}
       </div>
-
+  
       {/* Second Team Panel */}
-      <div className="text-center">
-        <h3 className="text-xl font-semibold text-blue-900">{matchDetails.secondTeamName}</h3>
-        {matchDetails.isLive ? (
-          <div>
-            <p className="text-lg font-semibold text-gray-700">
-              {scorecardId?.teamBScore}/{scorecardId?.teamBWickets}
-            </p>
-            <p className="text-sm text-gray-500">Overs: {scorecardId?.teamBOvers}</p>
-          </div>
+      <div className="bg-white rounded-lg shadow-lg p-6 text-center transition-all transform hover:scale-105 hover:shadow-2xl duration-300">
+        <h3 className="text-2xl font-semibold text-blue-900 mb-4">{matchDetails.secondTeamName}</h3>
+        {loading ? (
+          <p className="text-xl font-medium text-gray-700 animate-pulse">Loading...</p>
         ) : (
-          <p className="text-sm text-gray-500">Match has not started yet</p>
+          <div>
+            <p className="text-3xl font-bold text-gray-800 transition-all duration-500 ease-in-out">
+              {scoreCard?.teamBScore}/{scoreCard?.teamBWickets}
+            </p>
+            <p className="text-md text-gray-500 transition-all duration-500 ease-in-out">Overs: {scoreCard?.teamBOvers}</p>
+          </div>
         )}
       </div>
     </div>
   );
+  
 };
 
 export default ScorePanel;

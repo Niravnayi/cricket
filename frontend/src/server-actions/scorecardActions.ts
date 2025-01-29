@@ -11,9 +11,9 @@ export async function getScoreCardbyId({ scorecardId }: { scorecardId: number })
     return response.data
 }
 export async function setScoreCard({ matchId, Scorecard }: { matchId: number, Scorecard: Scorecard }) {
-    const { teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers } = Scorecard
+    const { teamAScore, teamBScore, teamAName,teamBName,teamAWickets, teamBWickets, teamAOvers, teamBOvers } = Scorecard
     const response = await axiosClient.post('/scorecards', {
-        matchId, teamAScore, teamBScore, teamAWickets, teamBWickets, teamAOvers, teamBOvers
+        matchId, teamAScore, teamBScore, teamAName,teamBName,teamAWickets, teamBWickets, teamAOvers, teamBOvers
     })
     return response.data
 }

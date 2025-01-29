@@ -10,17 +10,12 @@ router.get('/', async (req: Request, res: Response) => {
     try {
         const battingStats = await prisma.battingStats.findMany({});
         res.json(battingStats);
-        io.emit("teamAUpdate", {
+        io.emit("teamUpdate", {
             runs: battingStats.map(stat => stat.runs),
             overs: battingStats.map(stat => stat.balls),
             dismissedBatters: battingStats.map(stat => stat.dismissal),
-            scorecardId: battingStats.map(stat => stat.scorecardId)
-          });
-          io.emit("teamBUpdate", {
-            runs: battingStats.map(stat => stat.runs),
-            overs: battingStats.map(stat => stat.balls),
-            dismissedBatters: battingStats.map(stat => stat.dismissal),
-            scorecardId: battingStats.map(stat => stat.scorecardId)
+            scorecardId: battingStats.map(stat => stat.scorecardId),
+            teamName: battingStats.map(stat => stat.teamName)
           });
           io.emit("dismissedBatter",{
             dismissedBatters: battingStats.map(stat => stat.dismissal),
@@ -56,7 +51,7 @@ router.post('/', async (req: Request, res: Response) => {
         const createdStats = [];
         for (const stat of battingStats) {
             const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal } = stat;
-
+            console.log(scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal)
             if (!scorecardId || !playerId == undefined || !teamId == undefined || !runs == undefined || !balls == undefined || !fours == undefined || !sixes == undefined || !strikeRate == undefined || !dismissal) {
                 res.status(400).json({ error: 'Missing required fields in one or more batting stats' });
                 return;

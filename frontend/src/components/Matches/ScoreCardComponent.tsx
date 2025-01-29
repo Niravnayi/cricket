@@ -3,12 +3,10 @@ import {
   fetchMatchById,
 } from '../../server-actions/matchesActions';
 import { getBattingStats } from '../../server-actions/battingStatsActions';
-
-import { MatchDetails, BattingStats, BowlingStats } from './types/matchDetails';
-
+import { MatchDetails } from './types/matchDetails';
 import socket from '@/utils/socket';
-import { fetchTeamPlayers } from '@/server-actions/teamPlayersActions';
-import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
+import { getScoreCardbyId } from '@/server-actions/scorecardActions';
+import { Scorecard } from '@/app/matches/types';
 
 interface MatchPageProps {
   id: number;
@@ -16,39 +14,30 @@ interface MatchPageProps {
 
 const ScoreCardComponent = ({ id }: MatchPageProps) => {
   const [matchDetails, setMatchDetails] = useState<MatchDetails>();
-  const [battingStats, setBattingStats] = useState<BattingStats[]>([]);
-  const [bowlingStats, setBowlingStats] = useState<BowlingStats[]>([]);
+  const [ scoreCard,setScoreCard ] = useState<Scorecard>();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const matchDetails = await fetchMatchById(id);
-        setMatchDetails(matchDetails);
+        const matchData = await fetchMatchById(id);
+        setMatchDetails(matchData);
 
-        const playersData = await fetchTeamPlayers({
-          firstTeamId: matchDetails.firstTeamId,
-          secondTeamId: matchDetails.secondTeamId,
-        });
-
-        const battingData = await getBattingStats();
-        setBattingStats(battingData);
-
-        const bowlingData = await getBowlingStats();
-        setBowlingStats(bowlingData);
+        if (matchData?.scorecard?.scorecardId) {
+          const scorecardResponse = await getScoreCardbyId({
+            scorecardId: matchData.scorecard.scorecardId
+          });
+          setScoreCard(scorecardResponse);
+        }
       } catch (error) {
-        console.log('Error fetching data:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
     fetchData();
 
-    socket.on('allBattingStats', ({ battingStats }: { battingStats: BattingStats[] }) => {
-      setBattingStats(battingStats);
-    });
-
-    socket.on('allBowlingStats', ({ bowlingStats }: { bowlingStats: BowlingStats[] }) => {
-      setBowlingStats(bowlingStats);
-    });
+    // Socket listeners (keep these if needed)
+    socket.on('allBattingStats', () => { /* ... */ });
+    socket.on('allBowlingStats', () => { /* ... */ });
 
     return () => {
       socket.off('allBattingStats');
@@ -57,10 +46,10 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
   }, [id]);
 
   const renderBattingStats = (teamName: string) => {
-    const teamBattingStats = battingStats.filter(
+    const teamBattingStats = scoreCard?.battingStats.filter(
       (stat) => stat.teamName === teamName
     );
-
+console.log(scoreCard)
     return (
       <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
         <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">  
@@ -78,8 +67,8 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
             </tr>
           </thead>
           <tbody>
-            {teamBattingStats.map((player) => (
-              <tr key={player.battingStatsId}>
+            {teamBattingStats?.map((player) => (
+              <tr key={player.playerName}>
                 <td className="border p-3">{player.playerName}</td>
                 <td className="border p-3 text-center">{player.runs}</td>
                 <td className="border p-3 text-center">{player.balls}</td>
@@ -94,7 +83,7 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
     );
   };
   const renderBowlingStats = (teamName: string) => {
-    const teamBowlingStats = bowlingStats.filter(
+    const teamBowlingStats = scoreCard?.bowlingStats.filter(
       (stat) => stat.teamName === teamName
     );
 
@@ -115,7 +104,7 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
             </tr>
           </thead>
           <tbody>
-            {teamBowlingStats.map((bowler) => (
+            {teamBowlingStats?.map((bowler) => (
               <tr key={bowler.playerId} className="hover:bg-gray-100">
                 <td className="border-b p-3">{bowler.playerName}</td>
                 <td className="border-b p-3 text-center">{bowler.overs}</td>

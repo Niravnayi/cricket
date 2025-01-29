@@ -11,6 +11,8 @@ export interface Scorecard {
     teamBScore: number;
     teamAWickets: number;
     teamBWickets: number;
+    teamAName:string;
+    teamBName:string;
     teamAOvers: number;
     teamBOvers: number;
 }
