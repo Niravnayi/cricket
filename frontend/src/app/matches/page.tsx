@@ -110,6 +110,7 @@ const MatchesList = () => {
                 <p className="text-gray-700 text-sm mb-4">
                   Result: {match.result}
                 </p>
+
                 {match.scorecard && (
                   <>
                     <h3 className="text-lg mt-2 font-bold text-center">
@@ -135,6 +136,7 @@ const MatchesList = () => {
                     </div>
                   </>
                 )}
+
               </Link>
             </motion.li>
           ))}
@@ -148,4 +150,6 @@ const MatchesList = () => {
   );
 };
 
+
 export default MatchesList;
+
