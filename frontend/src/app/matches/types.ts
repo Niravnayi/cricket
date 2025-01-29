@@ -23,7 +23,6 @@ export type BowlingStats = {
   runsConceded: number;
   economyRate?: number;
   wickets: number;
-  economyRate: number;
 };
 
 export type Scorecard = {

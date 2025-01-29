@@ -40,15 +40,15 @@ const HomePage = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          Loading...
+          <div>
+            <span className="loader"></span>
+          </div>
         </motion.div>
       </div>
     );
   }
 
   return (
-
-
     <div className="bg-gray-50 min-h-screen py-10 px-4 sm:px-8">
       <header className="text-center pb-8">
         <motion.h1
@@ -77,7 +77,7 @@ const HomePage = () => {
         transition={{ duration: 1 }}
       >
         <h2 className="text-3xl font-semibold text-gray-700 mb-6 text-center">
-           Matches
+          Matches
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {matches.map((match) => (
@@ -156,38 +156,38 @@ const HomePage = () => {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {teams.map((team) => (
-        <motion.div
-          key={team.teamId}
-          className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-transform transform hover:scale-105"
-          whileHover={{ scale: 1.05 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h3 className="text-xl font-semibold text-indigo-600 mb-2">
-            {team.teamName}
-          </h3>
-          <div className="mb-4">
-            <h4 className="text-lg font-medium mb-1">Players</h4>
-            <ul className="list-disc list-inside">
-          {team.players.map((player) => (
-            <li key={player.playerId} className="text-sm text-gray-600">
-              {player.playerName} ({player.playerRole})
-            </li>
-          ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-lg font-medium mb-1">Tournaments</h4>
-            <ul className="list-disc list-inside">
-          {team.tournamentTeams.map((tournament) => (
-            <li key={tournament.id} className="text-sm text-gray-600">
-              {tournament.tournament.tournamentName}
-            </li>
-          ))}
-            </ul>
-          </div>
-        </motion.div>
+            <motion.div
+              key={team.teamId}
+              className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-transform transform hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="text-xl font-semibold text-indigo-600 mb-2">
+                {team.teamName}
+              </h3>
+              <div className="mb-4">
+                <h4 className="text-lg font-medium mb-1">Players</h4>
+                <ul className="list-disc list-inside">
+                  {team.players.map((player) => (
+                    <li key={player.playerId} className="text-sm text-gray-600">
+                      {player.playerName} 
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-lg font-medium mb-1">Tournaments</h4>
+                <ul className="list-disc list-inside">
+                  {team.tournamentTeams.map((tournament) => (
+                    <li key={tournament.id} className="text-sm text-gray-600">
+                      {tournament.tournament.tournamentName}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
           ))}
         </div>
       </motion.section>
@@ -232,6 +232,5 @@ const HomePage = () => {
     </div>
   );
 };
-
 
 export default HomePage;

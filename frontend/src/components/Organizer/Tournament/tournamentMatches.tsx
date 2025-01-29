@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Match } from "@/components/Organizer/Tournament/types/tournamentType";
-import { fetchTournamentMatches } from "@/server-actions/organizer/specificMatchAction"; 
+import { fetchTournamentMatches } from "@/server-actions/matchesActions";
+import { Match } from "./Types/tournamentType";
 
 const TournamentMatches = () => {
   const [tournamentMatches, setTournamentMatches] = useState<Match[] | null>(null);
