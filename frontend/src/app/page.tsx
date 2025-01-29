@@ -42,7 +42,8 @@ const HomePage = () => {
         >
           <div>
             <span className="loader"></span>
-          </div>5
+
+          </div>
         </motion.div>
       </div>
     );
@@ -173,7 +174,8 @@ const HomePage = () => {
                 <ul className="list-disc list-inside">
                   {team.players.map((player) => (
                     <li key={player.playerId} className="text-sm text-gray-600">
-                      {player.playerName} ({player.playerRole})
+
+                      {player.playerName} 
                     </li>
                   ))}
                 </ul>
