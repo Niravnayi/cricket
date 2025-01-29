@@ -44,7 +44,6 @@ const Navbar = () => {
           >
             All Matches
           </Link>
-
           <Link
             href="/tournament"
             className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
@@ -110,7 +109,7 @@ const Navbar = () => {
             </SheetHeader>
             <div className="space-y-4 mt-4">
               <Link
-                href="/all-matches"
+                href="/matches"
                 className="block text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
               >
                 All Matches
@@ -122,23 +121,29 @@ const Navbar = () => {
                 Tournament
               </Link>
 
+
               {user ? (
-                <div className="flex items-center space-x-4">
-                  {user.avatar ? (
-                    <Image
-                      src={user.avatar}
-                      alt="User Avatar"
-                      className="w-10 h-10 rounded-full"
-                      width={40}
-                      height={40}
-                    />
-                  ) : (
-                    <FaUserCircle className="w-10 h-10 text-gray-500" />
-                  )}
-                  <div className="text-sm">
-                    <p className="font-medium">{user.username}</p>
-                    <p className="text-xs">{user.email}</p>
+                <div>
+                  <div className="flex items-center space-x-4 mb-4">
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt="User Avatar"
+                        className="w-10 h-10 rounded-full"
+                        width={40}
+                        height={40}
+                      />
+                    ) : (
+                      <FaUserCircle className="w-10 h-10 text-gray-500" />
+                    )}
+                    <div className="text-sm">
+                      <p className="font-medium">{user.username}</p>
+                      <p className="text-xs">{user.email}</p>
+                    </div>
                   </div>
+                    <div>
+                      <SignOutButton />
+                    </div>
                 </div>
               ) : (
                 <Link
