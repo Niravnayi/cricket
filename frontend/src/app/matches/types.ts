@@ -5,6 +5,7 @@ export type BattingStats = {
   balls: number;
   scorecardId:number;
   matchId:number;
+
   fours: number;
   sixes: number;
   strikeRate: number;
@@ -47,8 +48,6 @@ export type matchDetails = {
   scorecard: Scorecard;
 };
 
-
-
 export interface Match {
   matchId: string;
   firstTeamName: string;
@@ -66,3 +65,4 @@ export interface Match {
     teamBOvers: number;
   };
 }
+
