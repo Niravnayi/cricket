@@ -58,6 +58,7 @@ const Navbar = () => {
           </Link>
 
           <Link
+
             href="/dashboard/1"
             className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
           >

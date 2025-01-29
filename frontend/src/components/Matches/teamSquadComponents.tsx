@@ -51,8 +51,10 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
 
     const fetchMatchState = async () => {
       console.log(matchDetails)
-      const response = await getMatchState({ matchId: matchDetails?.matchId ?? 27 });
-      setMatchState(response);
+      if (matchDetails?.matchId) {
+        const response = await getMatchState({ matchId: matchDetails.matchId });
+        setMatchState(response);
+      }
     };
 
     fetchMatchState();
@@ -188,14 +190,14 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
           }
         }
       }
-
+console.log(playerSelections, matchState)
       const matchStateData = {
         matchId: matchDetails.matchId,
         currentBatter1Id: playerSelections.batter1Id ?? matchState?.batter1Id ?? 0,
         currentBatter2Id: playerSelections.batter2Id ?? matchState?.batter2Id ?? 0,
         currentBowlerId: playerSelections.bowlerId ?? matchState?.bowlerId ?? 0,
       };
-  
+  console.log(matchStateData)
       await updateMatchState(matchStateData);
 
       const updatedBattingStats = await getBattingStats();
@@ -210,142 +212,156 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
     return playerSelections[role] === playerId;
   };
 
-  const isHighlighted = (playerId: number) =>
-    playerId === matchState?.batter1Id ||
-    playerId === matchState?.batter2Id ||
-    playerId === matchState?.bowlerId;
+  const isHighlighted = (playerId: number) => {
+    console.log(matchState);
+    return (
+      playerId === matchState?.batter1Id ||
+      playerId === matchState?.batter2Id ||
+      playerId === matchState?.bowlerId
+    );
+  };
 
-  return (
-    <div className="my-8 px-6">
-      <h2 className="text-3xl font-semibold text-center mb-6">Team Squads</h2>
-
-      <div className="flex justify-center space-x-4 mb-4">
-        <div>
-          <input
-            type="checkbox"
-            title="Select First Team"
-            checked={isInningSelected === 'first'}
-            onChange={() => setIsInningSelected(isInningSelected === 'first' ? null : 'first')}
-          />
-          <label className="ml-2">First Team</label>
+    return (
+      <div className="my-10 px-6">
+        <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">
+          🏏 Team Squads
+        </h2>
+    
+        {/* Team Selection */}
+        <div className="flex justify-center gap-6 mb-6">
+          <label className="flex items-center space-x-2 bg-gray-100 p-3 rounded-lg shadow-md cursor-pointer transition hover:bg-gray-200">
+            <input
+              type="checkbox"
+              className="hidden"
+              checked={isInningSelected === "first"}
+              onChange={() =>
+                setIsInningSelected(isInningSelected === "first" ? null : "first")
+              }
+            />
+            <span
+              className={`w-5 h-5 inline-block rounded-full ${
+                isInningSelected === "first" ? "bg-blue-500" : "bg-gray-300"
+              }`}
+            />
+            <span className="text-lg font-medium text-gray-700">First Team</span>
+          </label>
+    
+          <label className="flex items-center space-x-2 bg-gray-100 p-3 rounded-lg shadow-md cursor-pointer transition hover:bg-gray-200">
+            <input
+              type="checkbox"
+              className="hidden"
+              checked={isInningSelected === "second"}
+              onChange={() =>
+                setIsInningSelected(isInningSelected === "second" ? null : "second")
+              }
+            />
+            <span
+              className={`w-5 h-5 inline-block rounded-full ${
+                isInningSelected === "second" ? "bg-blue-500" : "bg-gray-300"
+              }`}
+            />
+            <span className="text-lg font-medium text-gray-700">Second Team</span>
+          </label>
         </div>
-        <div>
-          <input
-            title='Select Second Team'
-            type="checkbox"
-            checked={isInningSelected === 'second'}
-            onChange={() => setIsInningSelected(isInningSelected === 'second' ? null : 'second')}
-          />
-          <label className="ml-2">Second Team</label>
-        </div>
-      </div>
-
-      <div className="flex space-x-12 justify-center">
-        <div className="flex-1 bg-white shadow-lg rounded-lg overflow-hidden">
-          <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">{matchDetails?.firstTeamName}</h3>
-          <table className="table-auto border-collapse border border-gray-300 w-full">
-            <tbody>
-              {firstTeam.map((player) => (
-                <tr key={player.playerId} className={`hover:bg-gray-100 ${player.playerId !== undefined && isHighlighted(player.playerId) ? 'bg-yellow-300' : ''}`}>
-                  <td className="border-b p-3">{player.playerName}</td>
-                  {isInningSelected === 'first' && (
-                    <>
-                      <td className="border-b p-3">
-                        <button
-                          title="Select Batter 1"
-                          className={`px-2 py-1 rounded ${isSelected(player.playerId!, 'batter1Id') ? 'bg-red-500 text-white' : 'text-red-500 hover:text-red-700'}`}
-                          onClick={() => player.playerId !== undefined && handlePlayerSelection(player.playerId, 'batter1Id')}
-                        >
-                          Batter 1
-                        </button>
-                      </td>
-                      <td className="border-b p-3">
-                        <button
-                          title="Select Batter 2"
-                          className={`px-2 py-1 rounded ${player.playerId !== undefined && isSelected(player.playerId, 'batter2Id') ? 'bg-red-500 text-white' : 'text-red-500 hover:text-red-700'}`}
-                          onClick={() => player.playerId !== undefined && handlePlayerSelection(player.playerId, 'batter2Id')}
-                        >
-                          Batter 2
-                        </button>
-                      </td>
-                    </>
-                  )}
-                  {/* Add bowler selection button when inning is not selected for team */}
-                  {isInningSelected !== 'first' && (
-                    <td className="border-b p-3">
-                      <button
-                        title="Select Bowler"
-                        className={`px-2 py-1 rounded ${isSelected(player.playerId!, 'bowlerId') ? 'bg-green-500 text-white' : 'text-green-500 hover:text-green-700'}`}
-                        onClick={() => player.playerId !== undefined && handlePlayerSelection(player.playerId, 'bowlerId')}
+    
+        {/* Teams Display */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {[{ team: firstTeam, name: matchDetails?.firstTeamName, inning: "first" }, { team: secondTeam, name: matchDetails?.secondTeamName, inning: "second" }]
+            .map(({ team, name, inning }) => (
+              <div key={inning} className="bg-white shadow-xl rounded-lg overflow-hidden">
+                <h3 className="text-2xl font-semibold text-center bg-blue-500 text-white py-4">
+                  {name}
+                </h3>
+                <table className="w-full border-collapse">
+                  <tbody>
+                    {team.map((player) => (
+                      <tr
+                        key={player.playerId}
+                        className={`transition hover:bg-gray-100 ${
+                          player.playerId !== undefined &&
+                          isHighlighted(player.playerId)
+                            ? "bg-yellow-300"
+                            : ""
+                        }`}
                       >
-                        Bowler
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                        <td className="border-b p-4 text-lg text-gray-700">
+                          {player.playerName}
+                        </td>
+    
+                        {/* Batting Selection */}
+                        {isInningSelected === inning ? (
+                          <>
+                            <td className="border-b p-4">
+                              <button
+                                title="Select Batter 1"
+                                className={`px-3 py-1 rounded-md font-medium transition ${
+                                  isSelected(player.playerId!, "batter1Id")
+                                    ? "bg-red-500 text-white"
+                                    : "text-red-500 hover:bg-red-100"
+                                }`}
+                                onClick={() =>
+                                  player.playerId !== undefined &&
+                                  handlePlayerSelection(player.playerId, "batter1Id")
+                                }
+                              >
+                                Batter 1
+                              </button>
+                            </td>
+                            <td className="border-b p-4">
+                              <button
+                                title="Select Batter 2"
+                                className={`px-3 py-1 rounded-md font-medium transition ${
+                                  isSelected(player.playerId!, "batter2Id")
+                                    ? "bg-red-500 text-white"
+                                    : "text-red-500 hover:bg-red-100"
+                                }`}
+                                onClick={() =>
+                                  player.playerId !== undefined &&
+                                  handlePlayerSelection(player.playerId, "batter2Id")
+                                }
+                              >
+                                Batter 2
+                              </button>
+                            </td>
+                          </>
+                        ) : (
+                          <td className="border-b p-4">
+                            <button
+                              title="Select Bowler"
+                              className={`px-3 py-1 rounded-md font-medium transition ${
+                                isSelected(player.playerId!, "bowlerId")
+                                  ? "bg-green-500 text-white"
+                                  : "text-green-500 hover:bg-green-100"
+                              }`}
+                              onClick={() =>
+                                player.playerId !== undefined &&
+                                handlePlayerSelection(player.playerId, "bowlerId")
+                              }
+                            >
+                              Bowler
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
         </div>
-
-        <div className="flex-1 bg-white shadow-lg rounded-lg overflow-hidden">
-          <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">{matchDetails?.secondTeamName}</h3>
-          <table className="table-auto border-collapse border border-gray-300 w-full">
-            <tbody>
-              {secondTeam.map((player) => (
-                <tr key={player.playerId} className={`hover:bg-gray-100 ${player.playerId !== undefined && isHighlighted(player.playerId) ? 'bg-yellow-300' : ''}`}>
-                  <td className="border-b p-3">{player.playerName}</td>
-                  {isInningSelected === 'second' && (
-                    <>
-                      <td className="border-b p-3">
-                        <button
-                          title="Select Batter 1"
-                          className={`px-2 py-1 rounded ${isSelected(player.playerId!, 'batter1Id') ? 'bg-red-500 text-white' : 'text-red-500 hover:text-red-700'}`}
-                          onClick={() => player.playerId !== undefined && handlePlayerSelection(player.playerId, 'batter1Id')}
-                        >
-                          Batter 1
-                        </button>
-                      </td>
-                      <td className="border-b p-3">
-                        <button
-                          title="Select Batter 2"
-                          className={`px-2 py-1 rounded ${player.playerId !== undefined && isSelected(player.playerId, 'batter2Id') ? 'bg-red-500 text-white' : 'text-red-500 hover:text-red-700'}`}
-                          onClick={() => player.playerId !== undefined && handlePlayerSelection(player.playerId, 'batter2Id')}
-                        >
-                          Batter 2
-                        </button>
-                      </td>
-                    </>
-                  )}
-                  {/* Add bowler selection button when inning is not selected for team */}
-                  {isInningSelected !== 'second' && (
-                    <td className="border-b p-3">
-                      <button
-                        title="Select Bowler"
-                        className={`px-2 py-1 rounded ${isSelected(player.playerId!, 'bowlerId') ? 'bg-green-500 text-white' : 'text-green-500 hover:text-green-700'}`}
-                        onClick={() => player.playerId !== undefined && handlePlayerSelection(player.playerId, 'bowlerId')}
-                      >
-                        Bowler
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    
+        {/* Submit Button */}
+        <div className="mt-10 text-center">
+          <button
+            onClick={handleSubmitAllSelections}
+            className="bg-blue-600 text-white text-lg font-medium px-6 py-3 rounded-md shadow-md hover:bg-blue-700 transition"
+          >
+            ✅ Submit Selections
+          </button>
         </div>
       </div>
-
-      <div className="mt-8 text-center">
-        <button
-          onClick={handleSubmitAllSelections}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-        >
-          Submit Selections
-        </button>
-      </div>
-    </div>
-  );
+    );
+    
 
 };
 

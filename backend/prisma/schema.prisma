@@ -110,6 +110,8 @@ model scorecard {
   teamBWickets     Int
   teamAOvers       Float
   teamBOvers       Float
+  teamAName        String
+  teamBName        String
   extras           extras[]
   battingStats     battingStats[]
   bowlingStats     bowlingStats[]

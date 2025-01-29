@@ -1,13 +1,10 @@
-// MatchPage.tsx
-'use client'; // Ensure this component is client-side
+'use client'; 
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axiosClient from "@/utils/axiosClient";
 import { BattingStats, MatchDetails } from '@/app/organizer/matches/types/matchType';
-import { Team } from '@/components/Matches/types/matchDetails';
 import { fetchMatchById } from '@/server-actions/matchesActions';
-import { fetchTeamData } from '@/server-actions/teamsActions';
 
 interface Id {
   id: number;
@@ -15,34 +12,29 @@ interface Id {
 
 const MatchPage = ({ id }: Id) => {
   const [match, setMatch] = useState<MatchDetails | null>(null);
-  const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<{ [key: string]: boolean }>({});
   const [updatedStats, setUpdatedStats] = useState<{ [key: string]: Partial<BattingStats> }>({});
   const router = useRouter();
 
-  // Call the async function directly and set the match data once it is fetched
   const fetchData = async () => {
     const matchData = await fetchMatchById(id);
-    const teamData = await fetchTeamData();
     setMatch(matchData);
-    setTeam(teamData);
-    setLoading(false);  // Set loading state to false after data is fetched
+    setLoading(false); 
   };
 
   if (loading) {
-    fetchData();  // Call the data fetching function when the component renders
-    return <span className='loader'></span>;  // Show loading text while fetching
+    fetchData();  
+    return <span className='loader'></span>; 
   }
 
   if (!match) {
-    return <p>Match details not found.</p>;  // Handle no data case
+    return <p>Match details not found.</p>;  
   }
 
   const handleEditClick = (playerName: string) => {
     setEditing((prev) => ({ ...prev, [playerName]: !prev[playerName] }));
 
-    // Initialize player stats with current values if editing starts
     if (!updatedStats[playerName]) {
       setUpdatedStats((prev) => ({
         ...prev,
@@ -63,7 +55,7 @@ const MatchPage = ({ id }: Id) => {
       ...prev,
       [playerName]: {
         ...prev[playerName],
-        [field]: Number(e.target.value),  // Update only the changed field
+        [field]: Number(e.target.value),
       },
     }));
   };
@@ -84,15 +76,15 @@ const MatchPage = ({ id }: Id) => {
   
     try {
       await axiosClient.put(`/batting-stats/${match.scorecard.scorecardId}`, {
-        scorecardId: match.scorecard.scorecardId,   // Make sure scorecardId is sent
-        playerId: player.playerId,                   // Use playerId instead of playerName
-        teamId: match.firstTeamId,                   // Make sure teamId is sent
-        runs: updatedPlayerStats.runs,              // Make sure runs are included
-        balls: updatedPlayerStats.balls || 0,       // Default to 0 if balls are not available
-        fours: updatedPlayerStats.fours || 0,       // Default to 0 if fours are not available
-        sixes: updatedPlayerStats.sixes || 0,       // Default to 0 if sixes are not available
-        strikeRate: updatedPlayerStats.strikeRate || 0,  // Default to 0 if strikeRate is not available
-        dismissal: updatedPlayerStats.dismissal || '',  // Default to empty string if dismissal is not available
+        scorecardId: match.scorecard.scorecardId,   
+        playerId: player.playerId,                   
+        teamId: match.firstTeamId,                 
+        runs: updatedPlayerStats.runs,              
+        balls: updatedPlayerStats.balls || 0,       
+        fours: updatedPlayerStats.fours || 0,       
+        sixes: updatedPlayerStats.sixes || 0,       
+        strikeRate: updatedPlayerStats.strikeRate || 0, 
+        dismissal: updatedPlayerStats.dismissal || '',  
       });
   
       router.refresh();
@@ -101,9 +93,6 @@ const MatchPage = ({ id }: Id) => {
       console.error('Error updating stats:', error);
     }
   };
-  
-
-  console.log(match);
 
   return (
     <div>

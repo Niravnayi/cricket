@@ -23,21 +23,25 @@ const MatchInfo: React.FC<MatchInfoProps> = ({ matchDetails, id }) => {
       firstTeamId: matchDetails.firstTeamId,
       secondTeamId: matchDetails.secondTeamId,
       venue: matchDetails.venue,
+      isLive:matchDetails.isLive ? false : true,
       dateTime: new Date(matchDetails.dateTime).toISOString(),
     });
-
+    console.log(matchDetails)
 
     const scorecard: Scorecard = {
       teamAScore: 0,
       teamBScore: 0,
       teamAWickets: 0,
       teamBWickets: 0,
-      teamAName: matchDetails.firstTeamName,
-      teamBName: matchDetails.secondTeamName,
+      teamAName: matchDetails.firstTeamName ?? "Unknown Team A",
+      teamBName: matchDetails.secondTeamName ?? "Unknown Team B",
       teamAOvers: 0,
       teamBOvers: 0
     }
+    console.log(matchDetails.scorecard)
+    if(!matchDetails.scorecard){
 await setScoreCard({ matchId: matchDetails.matchId, Scorecard: scorecard });
+    }
 
     socket.on("scoreUpdate", (updatedScore:Scorecard) => {
       console.log("Score update received:", updatedScore);

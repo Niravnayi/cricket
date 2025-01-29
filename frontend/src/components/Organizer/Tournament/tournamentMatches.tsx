@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+
 import { fetchTournamentMatches } from "@/server-actions/matchesActions";
 import { Match } from "./Types/tournamentType";
 

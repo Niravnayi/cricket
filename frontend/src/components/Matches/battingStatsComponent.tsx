@@ -44,9 +44,12 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
 
 
     async function getMatchStats() {
+      console.log(matchDetails)
       try {
-        const response = await getMatchState({ matchId: matchDetails.matchId })
-        setMatchState(response)
+        if (matchDetails?.scorecard?.battingStats && matchDetails?.scorecard?.bowlingStats && matchDetails?.scorecard?.scorecardId && matchDetails.scorecard.battingStats.length > 0 && matchDetails.scorecard.bowlingStats.length > 0) {
+          const response = await getMatchState({ matchId: matchDetails.matchId });
+          setMatchState(response);
+        }
       } catch (error) {
         console.error('Error fetching match state:', error);
       }
@@ -105,9 +108,10 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
         const teamId1 = currentBowlerStats.teamName === matchDetails.firstTeamName
           ? matchDetails.firstTeamId
           : matchDetails.secondTeamId;
+        console.log(teamId1)
         const updatedBowlerStats = {
           ...currentBowlerStats,
-          teamId1,
+          teamId: teamId1,
           wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissalMethod ? 0 : 1) : 0,
         };
         await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
@@ -151,11 +155,15 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
           dismissal: editingPlayer.dismissal,
         });
         await getBattingStats()
-        socket.on("teamAUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number }) => {
+        socket.on("teamUpdate", (data: {
+          runs: number[];
+          overs: number[];
+          scorecardId: number[];
+          dismissedBatters: string[];
+          teamName: string[];
+        }) => {
+          console.log(data)
           console.log('batting A Stats Listening')
-        });
-        socket.on("teamBUpdate", (data: { runs: number[]; overs: number[]; scorecardId: number }) => {
-          console.log('batting B Stats Listening')
         });
         async function getBowling() {
           try {
@@ -174,28 +182,41 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
         const currentBowlerId = matchState?.bowlerId;
         if (currentBowlerId) {
           const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
-          const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: BowlingStats) => bowler.playerId === currentBowlerId)[0];
+          const currentBowlerStats = bowlingStatsResponse.data.filter(
+            (bowler: BowlingStats) => bowler.playerId === currentBowlerId
+          )[0];
+          console.log(currentBowlerStats)
           const addedRuns = currentBowlerStats ? pendingRuns + currentBowlerStats.runsConceded : pendingRuns;
-          console.log(updatedBalls)
-          const teamId = editingPlayer.teamName === matchDetails.firstTeamName
-            ? matchDetails.firstTeamId
-            : matchDetails.secondTeamId;
+
+          console.log(updatedBalls);
+          const teamId =
+            editingPlayer.teamName === matchDetails.firstTeamName
+              ? matchDetails.secondTeamId
+              : matchDetails.firstTeamId;
+
+          const updatedBallsCount = currentBowlerStats ? currentBowlerStats.overs + 0.1 : 1;
+          console.log(updatedBallsCount)
+
           const updatedBowlerStats = {
             ...currentBowlerStats,
             runsConceded: addedRuns,
             teamId,
-            overs: parseInt(`${Math.floor(updatedBalls / 6)}.${updatedBalls % 6}`),
-            wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissal ? 0 : 1) : 0,
-            economyRate: parseInt((currentBowlerStats.runsConceded / updatedBalls).toFixed(2)),
+            overs: currentBowlerStats ? currentBowlerStats.overs + 0.1 : 1,
+            wickets: currentBowlerStats ? currentBowlerStats.wickets + (dismissal ? 1 : 0) : 0,
+            economyRate: parseInt((currentBowlerStats.runsConceded / updatedBallsCount).toFixed(2)),
           };
-
+          console.log(updatedBowlerStats)
           await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
 
-          socket.emit('updateBowlingStats', updatedBowlerStats);
+          // Check if the bowler's overs have reached 6 or more, and remove the bowler from match state
+          if (updatedBallsCount >= 6) {
+            socket.emit('removeBowlerFromMatchState', currentBowlerId);
+          }
 
-          socket.on('updateBowlingStats', () => {
-          });
+          socket.emit('updateBowlingStats', updatedBowlerStats);
+          socket.on('updateBowlingStats', () => { });
         }
+
 
         setBattingStats((prevStats) =>
           prevStats.map((player) =>
@@ -213,73 +234,82 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
       }
       return () => {
         socket.off('allBowlingStats');
-        socket.off('teamAUpdate');
-        socket.off('teamBUpdate');
+        socket.off('teamUpdate');
       };
     }
   };
-
+  console.log(battingStats)
   return (
-    <div className="grid grid-cols-2 gap-6 p-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
       {['firstTeamName', 'secondTeamName'].map((teamKey) => (
-        <div key={teamKey} className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">
+        <div key={teamKey} className="bg-white rounded-lg shadow-lg p-6 transition-all hover:shadow-xl">
+          <h3 className="text-2xl font-semibold text-blue-900 mb-6">
             Batting Stats - {matchDetails[teamKey as 'firstTeamName' | 'secondTeamName']}
           </h3>
-          {battingStats
-            .filter(
-              (player) =>
-                player.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] &&
-                player.dismissal === 'Not Out'
-            )
-            .map((player) => (
-              <div key={player.playerName} className="flex justify-between items-center mb-4">
-                <span className="text-gray-800 font-medium">{player.playerName}</span>
-                <span className="text-gray-600">
-                  {player.runs} runs ({player.balls} balls)
-                </span>
-                <span className="text-gray-500">
-                  SR: {((player.runs / player.balls) * 100).toFixed(2)}
-                </span>
-                <button
-                  className="ml-4 px-3 py-1 bg-blue-500 text-white text-sm rounded"
-                  onClick={() => handleEditClick(player)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="ml-4 px-3 py-1 bg-red-500 text-white text-sm rounded"
-                  onClick={() => handleDismissedClick(player)}
-                >
-                  Dismissed
-                </button>
-              </div>
-            ))}
-          {/* Editing player UI remains unchanged */}
+          <div className="space-y-4">
+            {battingStats
+              .filter(
+                (player) =>
+                  player.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] &&
+                  player.dismissal === 'Not Out' &&
+                  (matchState?.bowlerId === player.playerId || matchState?.batter1Id === player.playerId || matchState?.batter2Id === player.playerId) // Filter based on matchState
+              )
+              .slice(0, 2) // Show only the first two players (batters)
+              .map((player) => (
+                <div key={player.playerName} className="flex justify-between items-center p-4 border-b border-gray-200">
+                  <div className="flex flex-col text-left space-y-1">
+                    <span className="text-lg font-medium text-gray-800">{player.playerName}</span>
+                    <span className="text-sm text-gray-600">
+                      {player.runs} runs ({player.balls} balls)
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      SR: {((player.runs / player.balls) * 100).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all"
+                      onClick={() => handleEditClick(player)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-all"
+                      onClick={() => handleDismissedClick(player)}
+                    >
+                      Dismissed
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Editing player UI */}
           {editingPlayer && editingPlayer.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] && (
-            <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-md">
-              <p className="text-sm font-semibold mb-3">
-                Editing <span className="text-blue-700">{editingPlayer.playerName}</span> - Pending Runs: <span className="text-green-700">{pendingRuns}</span>
+            <div className="mt-8 p-6 bg-gray-100 rounded-lg shadow-lg">
+              <p className="text-sm font-semibold text-gray-800 mb-4">
+                Editing <span className="text-blue-700">{editingPlayer.playerName}</span> - Pending Runs:{" "}
+                <span className="text-green-700">{pendingRuns}</span>
               </p>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((run) => (
                   <button
                     key={run}
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                    className="px-4 py-2 bg-green-500 text-white text-xl rounded-lg hover:bg-green-600 transition-all"
                     onClick={() => handleRunClick(run)}
                   >
                     {run}
                   </button>
                 ))}
                 <button
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                  className="col-span-3 px-4 py-2 bg-red-500 text-white text-xl rounded-lg hover:bg-red-600 transition-all"
                   onClick={() => setPendingRuns(0)}
                 >
                   Clear
                 </button>
               </div>
               <button
-                className="mt-4 px-6 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
+                className="mt-6 px-6 py-3 bg-blue-700 text-white text-lg rounded-lg hover:bg-blue-800 transition-all"
                 onClick={handleSaveClick}
               >
                 Save
@@ -290,6 +320,8 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
       ))}
     </div>
   );
+
+
 };
 
 export default BattingStatsComponent;

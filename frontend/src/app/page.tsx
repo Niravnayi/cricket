@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axiosClient from "@/utils/axiosClient";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Match, Team, Tournament } from "./Type";
+import { Match, Team, Tournament } from "./types";
 
 const HomePage = () => {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -42,6 +42,7 @@ const HomePage = () => {
         >
           <div>
             <span className="loader"></span>
+
           </div>
         </motion.div>
       </div>
@@ -49,6 +50,7 @@ const HomePage = () => {
   }
 
   return (
+
     <div className="bg-gray-50 min-h-screen py-10 px-4 sm:px-8">
       <header className="text-center pb-8">
         <motion.h1
@@ -172,6 +174,7 @@ const HomePage = () => {
                 <ul className="list-disc list-inside">
                   {team.players.map((player) => (
                     <li key={player.playerId} className="text-sm text-gray-600">
+
                       {player.playerName} 
                     </li>
                   ))}
@@ -234,3 +237,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
