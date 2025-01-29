@@ -47,8 +47,6 @@ export type matchDetails = {
   scorecard: Scorecard;
 };
 
-
-
 export interface Match {
   matchId: string;
   firstTeamName: string;

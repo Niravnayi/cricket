@@ -1,4 +1,4 @@
-import { Scorecard } from "@/app/matches/types";
+import { Scorecard } from "@/app/matches/types/types";
 
 export interface Tournament {
     tournamentId: number;

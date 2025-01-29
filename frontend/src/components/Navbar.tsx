@@ -51,13 +51,6 @@ const Navbar = () => {
           >
             Tournament
           </Link>
-
-          <Link
-            href="/dashboard"
-            className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
-          >
-            Admin
-          </Link>
         </div>
 
         {/* User Profile for Desktop */}
@@ -128,12 +121,7 @@ const Navbar = () => {
               >
                 Tournament
               </Link>
-              <Link
-                href="/leaderboard"
-                className="block text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
-              >
-                Leaderboard
-              </Link>
+
               {user ? (
                 <div className="flex items-center space-x-4">
                   {user.avatar ? (

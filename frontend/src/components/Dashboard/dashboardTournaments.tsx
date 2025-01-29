@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState} from 'react';
 import TournamentCard from '@/components/Dashboard/tournamentCard';
 import DashboadForm from '@/components/Dashboard/dashboardForm';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -14,24 +14,19 @@ const DashboardTournaments = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   const [teamData, setTeamData] = useState<Team[]>([]);
-  const hasFetchedData = useRef(false); 
 
   const fetchTournamentsData = async () => {
     try {
+      const team = await fetchTeamData();
+      console.log(team)
+      setTeamData(team);
       const tournamentData = await fetchOrganizerTournaments(1);
       setTournaments(tournamentData);
-
-      const team = await fetchTeamData();
-      setTeamData(team);
     } catch (error) {
-      console.error('Error fetching tournaments or team data:', error);
+      console.log(error)
     }
   };
-
-  if (!hasFetchedData.current) {
-    fetchTournamentsData();
-    hasFetchedData.current = true;
-  }
+fetchTournamentsData()
 
   const handleDelete = async (tournamentId: number) => {
     try {
@@ -64,7 +59,7 @@ const DashboardTournaments = () => {
     setCurrentTournament(null);
     setShowModal(true);
   };
-
+console.log(teamData)
   return (
     <div>
       <Dialog open={showModal} onOpenChange={setShowModal}>

@@ -20,7 +20,7 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
         const fetchedData = await fetchTournamentMatches(tournamentId);
         setMatches(fetchedData);
       } catch (error) {
-        console.error("Error fetching tournament matches:", error);
+        console.log("Error fetching tournament matches:", error);
       } finally {
         setLoading(false);
       }

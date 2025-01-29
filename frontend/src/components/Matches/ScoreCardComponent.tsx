@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-  fetchMatchById,
-} from '../../server-actions/matchesActions';
-import { getBattingStats } from '../../server-actions/battingStatsActions';
+import { fetchMatchById } from '../../server-actions/matchesActions';
 import { MatchDetails } from './types/matchDetails';
 import socket from '@/utils/socket';
 import { getScoreCardbyId } from '@/server-actions/scorecardActions';
-import { Scorecard } from '@/app/matches/types';
+import { Scorecard } from '@/app/matches/types/types';
 
 interface MatchPageProps {
   id: number;
@@ -28,14 +25,14 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
           });
           setScoreCard(scorecardResponse);
         }
-      } catch (error) {
+      } 
+      catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
     fetchData();
 
-    // Socket listeners (keep these if needed)
     socket.on('allBattingStats', () => { /* ... */ });
     socket.on('allBowlingStats', () => { /* ... */ });
 
@@ -49,7 +46,7 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
     const teamBattingStats = scoreCard?.battingStats.filter(
       (stat) => stat.teamName === teamName
     );
-console.log(scoreCard)
+
     return (
       <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
         <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">  
