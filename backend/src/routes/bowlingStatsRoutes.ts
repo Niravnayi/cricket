@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { bowlingStatsId,scorecardId, playerId, teamId, overs, maidens, runsConceded, wickets, economyRate }: BowlingStat = req.body;
-    console.log(scorecardId)
+
     if (!scorecardId==undefined || !playerId==undefined || !teamId==undefined || !overs==undefined || !maidens==undefined || !runsConceded==undefined || !wickets==undefined || !economyRate==undefined) {
         res.status(400).json({ error: 'Missing required fields' });
         return

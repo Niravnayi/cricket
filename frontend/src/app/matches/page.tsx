@@ -1,24 +1,24 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axiosClient from "../../utils/axiosClient";
-import { Match } from "./types";
+import { Match } from "./types/types";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
 const MatchesList = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
-  const [activeTab, setActiveTab] = useState("live"); // Tabs: live, scheduled, completed
-  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("live"); 
 
   useEffect(() => {
     const fetchMatches = async () => {
       try {
         const response = await axiosClient.get("/matches");
         setMatches(response.data);
-        filterMatches("live", response.data); // Default to live matches
-      } catch (err) {
-        setError("Failed to fetch matches data. Please try again later.");
+        filterMatches("live", response.data); 
+      } 
+      catch (err) {
+        console.error("Error fetching matches:", err);
       }
     };
 
@@ -28,13 +28,15 @@ const MatchesList = () => {
   const filterMatches = (tab: string, matchesData: Match[] = matches) => {
     if (tab === "live") {
       setFilteredMatches(matchesData.filter((match) => match.isLive));
-    } else if (tab === "scheduled") {
+    } 
+    else if (tab === "scheduled") {
       setFilteredMatches(
         matchesData.filter(
           (match) => new Date(match.dateTime) > new Date() && !match.isLive
         )
       );
-    } else if (tab === "completed") {
+    } 
+    else if (tab === "completed") {
       setFilteredMatches(
         matchesData.filter((match) => !match.isLive && new Date(match.dateTime) <= new Date())
       );
@@ -45,10 +47,6 @@ const MatchesList = () => {
     setActiveTab(tab);
     filterMatches(tab);
   };
-
-  if (error) {
-    return <p className="text-red-500 text-center mt-4">{error}</p>;
-  }
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">

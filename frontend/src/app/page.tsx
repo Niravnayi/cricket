@@ -4,6 +4,8 @@ import axiosClient from "@/utils/axiosClient";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Match, Team, Tournament } from "./types";
+import { fetchTeamData } from "@/server-actions/teamsActions";
+import { fetchAllTournaments } from "@/server-actions/tournamentsActions";
 
 const HomePage = () => {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -15,15 +17,17 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         const matchesResponse = await axiosClient.get("/matches");
-        const teamsResponse = await axiosClient.get("/teams");
-        const tournamentsResponse = await axiosClient.get("/tournaments");
+        const teamsResponse = await fetchTeamData();
+        const tournamentsResponse = await fetchAllTournaments();
         setMatches(matchesResponse.data);
         setTeams(teamsResponse.data);
         setTournaments(tournamentsResponse.data);
         console.log(teamsResponse.data);
-      } catch (error) {
+      } 
+      catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
+      } 
+      finally {
         setLoading(false);
       }
     };
@@ -42,7 +46,6 @@ const HomePage = () => {
         >
           <div>
             <span className="loader"></span>
-
           </div>
         </motion.div>
       </div>

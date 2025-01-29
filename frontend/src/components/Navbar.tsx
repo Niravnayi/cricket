@@ -50,20 +50,6 @@ const Navbar = () => {
           >
             Tournament
           </Link>
-          <Link
-            href="/TeamPlayer"
-            className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
-          >
-            TeamPlayer
-          </Link>
-
-          <Link
-
-            href="/dashboard/1"
-            className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
-          >
-            Admin
-          </Link>
         </div>
 
         {/* User Profile for Desktop */}
@@ -134,18 +120,8 @@ const Navbar = () => {
               >
                 Tournament
               </Link>
-              <Link
-                href="/TeamPlayer"
-                className="block text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
-              >
-                Teamplayer
-              </Link>
-              <Link
-                href="/dashboard/1"
-                className="block text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
-              >
-                Admin
-              </Link>
+
+
               {user ? (
                 <div>
                   <div className="flex items-center space-x-4 mb-4">

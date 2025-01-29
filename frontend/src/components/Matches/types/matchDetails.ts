@@ -86,3 +86,9 @@ export interface Extras {
   teamAExtras: number;
   teamBExtras: number;
 }
+
+export interface MatchState {
+  bowlerId: number;
+  batter1Id: number;
+  batter2Id: number;
+}

@@ -13,6 +13,7 @@ router.get('/', async (req: Request, res: Response) => {
 
         });
         res.json(scorecards);
+ 
     } catch (error) {
         res.status(500).json({ error: 'Error fetching scorecards' });
     }
@@ -31,6 +32,7 @@ router.get('/:id', async (req: Request, res: Response) => {
                 extras: true,
             },
         });
+        io.emit('getScoreCard',{scorecard})
         res.json(scorecard);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching scorecard' });

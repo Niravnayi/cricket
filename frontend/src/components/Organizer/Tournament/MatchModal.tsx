@@ -30,18 +30,17 @@ const MatchModal: React.FC<MatchModalProps> = ({tournamentId, editingMatch, onCl
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-      await fetchTournamentMatches(tournamentId);
-    
-
         const tournament = await fetchTournamentById(tournamentId);
+        console.log(tournament)
         const tournamentTeams = tournament.teams.map((team: { team: Team }) => ({
           teamId: team.team.teamId,
           teamName: team.team.teamName,
         }));
         setTeams(tournamentTeams); 
+        await fetchTournamentMatches(tournamentId);
       } 
       catch (err) {
-        console.error("Error fetching teams:", err);
+        console.log("Error fetching teams:", err);
       }
     };
   
@@ -66,7 +65,7 @@ const MatchModal: React.FC<MatchModalProps> = ({tournamentId, editingMatch, onCl
 
       const id = editingMatch?.matchId
       if (editingMatch && id) {
-        await updateMatch({id, tournamentId, firstTeamId: teamAId, secondTeamId: teamBId, venue, dateTime:date});
+        await updateMatch({id, tournamentId, isLive:false,firstTeamId: teamAId, secondTeamId: teamBId, venue, dateTime:date});
       } 
       else {
         await createMatch(tournamentId, teamAId, teamBId, venue, date);

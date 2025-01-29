@@ -5,12 +5,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { fetchTournamentMatches } from "@/server-actions/matchesActions";
 import { Match } from "./Types/tournamentType";
 
-const TournamentMatches = () => {
+const TournamentMatches = ({tournamentId}:{tournamentId:number}) => {
   const [tournamentMatches, setTournamentMatches] = useState<Match[] | null>(null);
   const [activeTab, setActiveTab] = useState<"live" | "scheduled" | "completed">("live");
 
 
-  const tournamentId = "42"; 
+   
 
   useEffect(() => {
     const fetchTournament = async () => {

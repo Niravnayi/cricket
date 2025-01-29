@@ -1,9 +1,11 @@
 "use client";
 import React from "react";
 import TournamentComponent from "@/components/Organizer/Tournament/tournamentComponents";
+import { useParams } from "next/navigation";
 
 export default function Home() {
-  const tournamentId = 42; // Replace with actual tournament ID
+    const params = useParams()
+    const tournamentId = params?.slug ? Number(params.slug) : 0
 
   return <TournamentComponent tournamentId={tournamentId} />;
 }
