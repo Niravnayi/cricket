@@ -49,7 +49,7 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
         setScoreCard(response);
       }
     }
-    
+  
     fetchScoreCard();
     socket.on('getScoreCard', (data: { scorecard: Scorecard }) => {
       console.log('all bowling stats')

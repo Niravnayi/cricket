@@ -92,7 +92,7 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
         try {
           const response = await getMatchState({ matchId: matchDetails.matchId });
           setMatchState(response);
-        } 
+        }
         catch (error) {
           console.log('Error fetching match state:', error);
         }
@@ -145,7 +145,7 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
             fours: 0,
             sixes: 0,
             strikeRate: 0,
-            dismissal: 'Not Out',
+            dismissal: 'Yet to Bat',
           };
           await updateBattingStats({ ...updateBatting, battingStatsId: existingStatsId });
         }
@@ -163,7 +163,7 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
               fours: 0,
               sixes: 0,
               strikeRate: 0,
-              dismissal: 'Not Out',
+              dismissal: 'Yet to Bat',
             },
           ];
           await addBattingStats(battingStatsData);
@@ -253,8 +253,7 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
             }
           />
           <span
-            className={`w-5 h-5 inline-block rounded-full ${isInningSelected === "first" ? "bg-blue-500" : "bg-gray-300"
-              }`}
+            className={`w-5 h-5 inline-block rounded-full ${isInningSelected === "first" ? "bg-blue-500" : "bg-gray-300"}`}
           />
           <span className="text-lg font-medium text-gray-700">First Team</span>
         </label>
@@ -269,8 +268,7 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
             }
           />
           <span
-            className={`w-5 h-5 inline-block rounded-full ${isInningSelected === "second" ? "bg-blue-500" : "bg-gray-300"
-              }`}
+            className={`w-5 h-5 inline-block rounded-full ${isInningSelected === "second" ? "bg-blue-500" : "bg-gray-300"}`}
           />
           <span className="text-lg font-medium text-gray-700">Second Team</span>
         </label>
@@ -286,72 +284,91 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
               </h3>
               <table className="w-full border-collapse">
                 <tbody>
-                  {team.map((player) => (
-                    <tr
-                      key={player.playerId}
-                      className={`transition hover:bg-gray-100 ${player.playerId !== undefined &&
-                          isHighlighted(player.playerId)
-                          ? "bg-yellow-300"
-                          : ""
-                        }`}
-                    >
-                      <td className="border-b p-4 text-lg text-gray-700">
-                        {player.playerName}
-                      </td>
+                  {team.map((player) => {
 
-                      {/* Batting Selection */}
-                      {isInningSelected === inning ? (
-                        <>
+                    const playerDismissal = player.playerId !== undefined ? Batting?.find(stat => stat.playerId === player.playerId) ?? { dismissal: "Not Out" } : { dismissal: "Not Out" };
+
+
+                    return (
+                      <tr
+                        key={player.playerId}
+                        className={`transition hover:bg-gray-100 ${player.playerId !== undefined && isHighlighted(player.playerId) ? "bg-yellow-300" : ""}`}
+                      >
+                        <td className="border-b p-4 text-lg text-gray-700">
+                          {player.playerName}
+                        </td>
+
+                        {/* Batting or Dismissed Selection */}
+                        {isInningSelected === inning ? (
+                          playerDismissal.dismissal === "Not Out" ? (
+                            <>
+                              <td className="border-b p-4">
+                                <button
+                                  title="Select Batter 1"
+                                  className={`px-3 py-1 rounded-md font-medium transition ${player.playerId !== undefined && isSelected(player.playerId, "batter1Id")
+                                      ? "bg-red-500 text-white"
+                                      : "text-red-500 hover:bg-red-100"
+                                    }`}
+                                  onClick={() =>
+                                    player.playerId !== undefined &&
+                                    player.playerId !== playerSelections.batter2Id && 
+                                    handlePlayerSelection(player.playerId, "batter1Id")
+                                  }
+                                >
+                                  Batter 1
+                                </button>
+                              </td>
+
+                              <td className="border-b p-4">
+                                <button
+                                  title="Select Batter 2"
+                                  className={`px-3 py-1 rounded-md font-medium transition ${player.playerId !== undefined && isSelected(player.playerId, "batter2Id")
+                                      ? "bg-red-500 text-white"
+                                      : "text-red-500 hover:bg-red-100"
+                                    }`}
+                                  onClick={() =>
+                                    player.playerId !== undefined &&
+                                    player.playerId !== playerSelections.batter1Id && 
+                                    handlePlayerSelection(player.playerId, "batter2Id")
+                                  }
+                                >
+                                  Batter 2
+                                </button>
+                              </td>
+
+                            </>
+                          ) : (
+                            <td className="border-b p-4">
+                              <button
+                                title="Dismissed"
+                                className="px-3 py-1 rounded-md font-medium text-gray-500 cursor-not-allowed"
+                                disabled
+                              >
+                                {playerDismissal.dismissal}
+                              </button>
+                            </td>
+                          )
+                        ) : (
                           <td className="border-b p-4">
                             <button
-                              title="Select Batter 1"
-                              className={`px-3 py-1 rounded-md font-medium transition ${isSelected(player.playerId!, "batter1Id")
-                                  ? "bg-red-500 text-white"
-                                  : "text-red-500 hover:bg-red-100"
-                                }`}
-                              onClick={() =>
-                                player.playerId !== undefined &&
-                                handlePlayerSelection(player.playerId, "batter1Id")
-                              }
-                            >
-                              Batter 1
-                            </button>
-                          </td>
-                          <td className="border-b p-4">
-                            <button
-                              title="Select Batter 2"
-                              className={`px-3 py-1 rounded-md font-medium transition ${isSelected(player.playerId!, "batter2Id")
-                                  ? "bg-red-500 text-white"
-                                  : "text-red-500 hover:bg-red-100"
-                                }`}
-                              onClick={() =>
-                                player.playerId !== undefined &&
-                                handlePlayerSelection(player.playerId, "batter2Id")
-                              }
-                            >
-                              Batter 2
-                            </button>
-                          </td>
-                        </>
-                      ) : (
-                        <td className="border-b p-4">
-                          <button
-                            title="Select Bowler"
-                            className={`px-3 py-1 rounded-md font-medium transition ${isSelected(player.playerId!, "bowlerId")
+                              title="Select Bowler"
+                              className={`px-3 py-1 rounded-md font-medium transition ${player.playerId !== undefined && isSelected(player.playerId, "bowlerId")
                                 ? "bg-green-500 text-white"
                                 : "text-green-500 hover:bg-green-100"
-                              }`}
-                            onClick={() =>
-                              player.playerId !== undefined &&
-                              handlePlayerSelection(player.playerId, "bowlerId")
-                            }
-                          >
-                            Bowler
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
+                                }`}
+                              onClick={() =>
+                                player.playerId !== undefined &&
+                                handlePlayerSelection(player.playerId, "bowlerId")
+                              }
+                            >
+                              Bowler
+                            </button>
+                          </td>
+                        )}
+
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -368,6 +385,8 @@ const TeamSquadComponents = ({ id }: MatchPageProps) => {
         </button>
       </div>
     </div>
+
+
   );
 
 

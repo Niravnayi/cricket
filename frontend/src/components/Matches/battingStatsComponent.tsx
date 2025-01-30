@@ -6,17 +6,24 @@ import { getMatchState } from '@/server-actions/matchStateActions';
 import { getBattingStats } from '@/server-actions/battingStatsActions';
 import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
 import { getScoreCardbyId } from '@/server-actions/scorecardActions';
+import { updateMatchState } from '@/server-actions/matchStateActions';
 
 interface BattingStatsComponentProps {
   matchDetails: MatchDetails;
+  strikerIndex: number;
+  nonStrikerIndex: number;
+  onStrikeChange: () => void;
 }
 
-const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDetails }) => {
+const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDetails,
+  strikerIndex,
+  onStrikeChange }) => {
   const [editingPlayer, setEditingPlayer] = useState<PlayerStats | null>(null);
   const [pendingRuns, setPendingRuns] = useState<number>(0);
   const [battingStats, setBattingStats] = useState<PlayerStats[]>([]);
   const [dismissal, setDismissal] = useState<string | null>(null)
-
+  console.log(strikerIndex)
+  
   const [matchState, setMatchState] = useState<MatchState | null>(null);
 
   useEffect(() => {
@@ -88,36 +95,71 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
 
   const handleDismissedClick = async (player: PlayerStats) => {
     const dismissalMethod = prompt(`Enter the dismissal method for ${player.playerName}:`, "Caught, Bowled, etc.");
-    setDismissal(dismissalMethod)
+    setDismissal(dismissalMethod);
+  
     if (dismissalMethod) {
       try {
         const teamId = player.teamName === matchDetails.firstTeamName
           ? matchDetails.firstTeamId
           : matchDetails.secondTeamId;
+  
         await axiosClient.put(`/batting-stats/${player.battingStatsId}`, {
           ...player,
           dismissal: dismissalMethod,
           teamId,
         });
-
+  
         const currentBowlerId = matchState?.bowlerId;
         const bowlingStatsResponse = await getBowlingStats();
-
-        const currentBowlerStats = bowlingStatsResponse.data.filter((bowler: BowlingStats) => bowler.playerId === currentBowlerId)[0];
-        const currentBowler = currentBowlerStats.teamName === matchDetails.firstTeamName
-          ? matchDetails.firstTeamId
-          : matchDetails.secondTeamId;
-
-        const updatedBowlerStats = {
-          ...currentBowlerStats,
-          teamId: currentBowler,
-          wickets: currentBowlerStats ? currentBowlerStats.wickets + (!dismissalMethod ? 0 : 1) : 0,
-        };
-
-        await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
-        socket.on('dismissedBatter', () => {
-        })
-
+  
+        const currentBowlerStats = bowlingStatsResponse.data?.find(
+          (bowler: BowlingStats) => bowler.playerId === currentBowlerId
+        );
+  
+        if (currentBowlerStats) {
+          const updatedBowlerStats = {
+            ...currentBowlerStats,
+            teamId,
+            wickets: currentBowlerStats.wickets + 1,
+          };
+  
+          await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
+        }
+  
+        socket.emit('dismissedBatter', { playerId: player.playerId });
+        setMatchState((prevState) => {
+          if (!prevState) return prevState; // Ensure previous state exists
+        
+          // Check if any batter needs to be updated
+          const isBatter1Out = prevState.batter1Id === player.playerId;
+          const isBatter2Out = prevState.batter2Id === player.playerId;
+        
+          // If neither batter is out, return without changing state
+          if (!isBatter1Out && !isBatter2Out) return prevState;
+        
+          return {
+            ...prevState,
+            batter1Id: isBatter1Out ? 0 : prevState.batter1Id,
+            batter2Id: isBatter2Out ? 0 : prevState.batter2Id,
+          };
+        });
+        
+        // Use `useEffect` to trigger API update only when matchState changes
+        console.log("Updated matchState:", matchState); 
+        
+          if (!matchState) return; // Ensure state exists
+        
+          // **Check if none of the values are zero, then return without updating API**
+          if (matchState.batter1Id !== 0 && matchState.batter2Id !== 0) return;
+        
+          updateMatchState({
+            matchId: matchDetails.matchId,
+            currentBatter1Id: matchState.batter1Id || 0,
+            currentBatter2Id: matchState.batter2Id || 0,
+            currentBowlerId: matchState.bowlerId || 0,
+          });
+        
+        
         setBattingStats((prevStats) =>
           prevStats.map((p) =>
             p.battingStatsId === player.battingStatsId
@@ -125,7 +167,7 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
               : p
           )
         );
-
+  
         return () => {
           socket.off('dismissedBatter');
         };
@@ -134,6 +176,7 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
       }
     }
   };
+  
 
   const handleSaveClick = async () => {
     if (editingPlayer) {
@@ -203,12 +246,16 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
               : matchDetails.firstTeamId;
 
           console.log("current bowler over",currentBowlerStats.overs)
-          const updatedBallsCount = currentBowlerStats ? currentBowlerStats.overs + 0.1 : 1;
+          const currentOvers = currentBowlerStats ? currentBowlerStats.overs : 0;
+          const totalBalls = Math.floor(currentOvers) * 6 + (currentOvers % 1) * 10; 
+          
+          const updatedBallsCount = totalBalls + 1; 
+          const updatedOvers = Math.floor(updatedBallsCount / 6) + (updatedBallsCount % 6) * 0.1; 
           const updatedBowlerStats = {
             ...currentBowlerStats,
             runsConceded: addedRuns,
             teamId,
-            overs: currentBowlerStats ? currentBowlerStats.overs + 0.1 : 1,
+            overs:updatedOvers,
             wickets: currentBowlerStats ? currentBowlerStats.wickets + (dismissal ? 1 : 0) : 0,
             economyRate: parseInt((currentBowlerStats.runsConceded / updatedBallsCount).toFixed(2)),
           };
@@ -229,14 +276,15 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
               ? { ...player, runs: updatedRuns, balls: updatedBalls }
               : player
           )
-        );
-
+        );        
         setEditingPlayer(null);
         setPendingRuns(0);
-
       } catch (error) {
         console.error('Error updating batting stats or bowling stats:', error);
       }
+      if (pendingRuns % 2 !== 0) {
+  onStrikeChange();
+      }      
       return () => {
         socket.off('getScoreCard');
         socket.off('teamUpdate');
@@ -246,54 +294,66 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
-      {['firstTeamName', 'secondTeamName'].map((teamKey) => (
-        <div key={teamKey} className="bg-white rounded-lg shadow-lg p-6 transition-all hover:shadow-xl">
-          <h3 className="text-2xl font-semibold text-blue-900 mb-6">
-            Batting Stats - {matchDetails[teamKey as 'firstTeamName' | 'secondTeamName']}
-          </h3>
-          <div className="space-y-4">
-            {battingStats
-              .filter(
-                (player) =>
-                  player.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] &&
-                  player.dismissal === 'Not Out' &&
-                  (matchState?.bowlerId === player.playerId || matchState?.batter1Id === player.playerId || matchState?.batter2Id === player.playerId) 
-              )
-              .slice(0, 2) 
-              .map((player) => (
-                <div key={player.playerName} className="flex justify-between items-center p-4 border-b border-gray-200">
-                  <div className="flex flex-col text-left space-y-1">
-                    <span className="text-lg font-medium text-gray-800">{player.playerName}</span>
-                    <span className="text-sm text-gray-600">
-                      {player.runs} runs ({player.balls} balls)
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      SR: {((player.runs / player.balls) * 100).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex gap-4 items-center">
-                    <button
-                      className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all"
-                      onClick={() => handleEditClick(player)}
-                    >
-                      Edit
-                    </button>
+    {['firstTeamName', 'secondTeamName'].map((teamKey) => (
+      <div key={teamKey} className="bg-white rounded-lg shadow-lg p-6 transition-all hover:shadow-xl">
+        <h3 className="text-2xl font-semibold text-blue-900 mb-6">
+          Batting Stats - {matchDetails[teamKey as 'firstTeamName' | 'secondTeamName']}
+        </h3>
+        <div className="space-y-4">
+          {battingStats
+            .filter(
+              (player) =>
+                player.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] &&
+                player.dismissal === 'Not Out' &&
+                (matchState?.bowlerId === player.playerId ||
+                  matchState?.batter1Id === player.playerId ||
+                  matchState?.batter2Id === player.playerId)
+            )
+            .slice(0, 2) // Limit to first 2 players
+            .map((player, index) => (
+              <div
+                key={player.playerName}
+                className={`flex justify-between items-center p-4 border-b border-gray-200 ${
+                  index === strikerIndex ? 'bg-yellow-100' : ''
+                }`}
+              >
+                <div className="flex flex-col text-left space-y-1">
+                  <span className="text-lg font-medium text-gray-800">
+                    {player.playerName} {index === strikerIndex ? '(Striker)' : '(Non-Striker)'}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    {player.runs} runs ({player.balls} balls)
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    SR: {((player.runs / player.balls) * 100).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex gap-4 items-center">
+                {index === strikerIndex && (<button
+                    className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-all"
+                    onClick={() => handleEditClick(player)}
+                  >
+                    Edit
+                  </button>)}
+                
                     <button
                       className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-all"
                       onClick={() => handleDismissedClick(player)}
                     >
                       Dismissed
                     </button>
-                  </div>
+                  
                 </div>
-              ))}
-          </div>
-
-          {/* Editing player UI */}
-          {editingPlayer && editingPlayer.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] && (
+              </div>
+            ))}
+        </div>
+  
+        {/* Editing player UI */}
+        {editingPlayer &&
+          editingPlayer.teamName === matchDetails[teamKey as 'firstTeamName' | 'secondTeamName'] && (
             <div className="mt-8 p-6 bg-gray-100 rounded-lg shadow-lg">
               <p className="text-sm font-semibold text-gray-800 mb-4">
-                Editing <span className="text-blue-700">{editingPlayer.playerName}</span> - Pending Runs:{" "}
+                Editing <span className="text-blue-700">{editingPlayer.playerName}</span> - Pending Runs:{' '}
                 <span className="text-green-700">{pendingRuns}</span>
               </p>
               <div className="grid grid-cols-3 gap-4">
@@ -321,9 +381,11 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({ matchDeta
               </button>
             </div>
           )}
-        </div>
-      ))}
-    </div>
+      </div>
+    ))}
+  </div>
+  
+  
   );
 };
 

@@ -45,6 +45,13 @@ const Navbar = () => {
             All Matches
           </Link>
           <Link
+            href="/dashboard/1"
+            className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
+          >
+            Dashboard
+          </Link>
+
+          <Link
             href="/tournament"
             className="text-sm md:text-base lg:text-lg font-medium hover:text-black transition duration-300"
           >

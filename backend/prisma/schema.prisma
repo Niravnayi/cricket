@@ -119,7 +119,7 @@ model scorecard {
 
 model extras {
   extrasId         Int           @id @default(autoincrement())
-  scorecardId      Int
+  scorecardId      Int @unique
   scorecard        scorecard     @relation(fields: [scorecardId], references: [scorecardId])
   teamName         String
   byes             Int
