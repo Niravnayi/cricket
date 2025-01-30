@@ -46,7 +46,7 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
     const teamBattingStats = scoreCard?.battingStats.filter(
       (stat) => stat.teamName === teamName
     );
-
+  
     return (
       <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
         <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">  
@@ -66,12 +66,27 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
           <tbody>
             {teamBattingStats?.map((player) => (
               <tr key={player.playerName}>
-                <td className="border p-3">{player.playerName}</td>
-                <td className="border p-3 text-center">{player.runs}</td>
-                <td className="border p-3 text-center">{player.balls}</td>
-                <td className="border p-3 text-center">{player.fours}</td>
-                <td className="border p-3 text-center">{player.sixes}</td>
-                <td className="border p-3 text-center">{player.strikeRate}</td>
+                <td className="border p-3">
+                  {player.playerName}
+                  {player.dismissal && (
+                    <div className="text-sm text-gray-600">
+                      {player.dismissal}
+                    </div>
+                  )}
+                </td>
+                {player.runs === 0 && player.balls === 0 && player.dismissal === 'Yet to bat' ? (
+                  <td colSpan={5} className="border p-3 text-center">
+                    Yet to bat
+                  </td>
+                ) : (
+                  <>
+                    <td className="border p-3 text-center">{player.runs}</td>
+                    <td className="border p-3 text-center">{player.balls}</td>
+                    <td className="border p-3 text-center">{player.fours}</td>
+                    <td className="border p-3 text-center">{player.sixes}</td>
+                    <td className="border p-3 text-center">{player.strikeRate}</td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>

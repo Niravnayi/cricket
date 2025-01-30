@@ -18,6 +18,8 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
   const [teamBScore, setTeamBScore] = useState(0);
   const [teamBovers, setTeamBovers] = useState("0");
   const [teamBWickets] = useState(0);
+  const [ teamBExtrasRuns,setTeamBExtras ] = useState(0)
+  const [ teamAExtrasRuns,setTeamAExtras ] = useState(0)
   const [scoreCard, setScoreCard] = useState<Scorecard>();
   const isMounted = useRef(true);
 
@@ -28,7 +30,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
 
   useEffect(() => {
     isMounted.current = true;
-    
+
     const handleTeamUpdate = (data: {
       runs: number[];
       overs: number[];
@@ -37,27 +39,49 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
       teamName: string[];
     }) => {
       if (!isMounted.current) return;
-      
+
       console.log('Received teamUpdate:', data);
-      
-      if (matchDetails.scorecard?.scorecardId && 
-          data.scorecardId.includes(matchDetails.scorecard.scorecardId)) {
+
+      if (matchDetails.scorecard?.scorecardId &&
+        data.scorecardId.includes(matchDetails.scorecard.scorecardId)) {
         let teamATotalRuns = 0;
         let teamATotalBalls = 0;
         let teamBTotalRuns = 0;
         let teamBTotalBalls = 0;
 
+        // Initialize extra runs for both teams
+        let teamAExtras = 0;
+        let teamBExtras = 0;
+
+        if (scoreCard?.extras) {
+          Object.entries(scoreCard.extras).forEach(([,extrasObject]) => {
+            console.log(extrasObject.teamName, 'teamName'); 
+            if (extrasObject.teamName === matchDetails.firstTeamName) {
+              teamAExtras += extrasObject.totalExtras as number; 
+              setTeamAExtras(teamAExtras)
+            } else if (extrasObject.teamName === matchDetails.secondTeamName) {
+              teamBExtras += extrasObject.totalExtras as number;
+              console.log(teamBExtras)
+              setTeamBExtras(teamBExtras)
+              console.log(teamBExtras, 'teamBExtras');
+            }
+          });
+        }
+        console.log(teamAExtras)
+        console.log(teamBExtras)
+
         data.teamName.forEach((team, index) => {
-          if (team === matchDetails.firstTeamName && 
-              data.scorecardId[index] === matchDetails.scorecard?.scorecardId) {
-            teamATotalRuns += data.runs[index];
+          if (team === matchDetails.firstTeamName &&
+            data.scorecardId[index] === matchDetails.scorecard?.scorecardId) {
+            teamATotalRuns += data.runs[index]+ teamAExtras;
             teamATotalBalls += data.overs[index];
-          } else if (team === matchDetails.secondTeamName && 
-                     data.scorecardId[index] === matchDetails.scorecard?.scorecardId) {
-            teamBTotalRuns += data.runs[index];
+          } else if (team === matchDetails.secondTeamName &&
+            data.scorecardId[index] === matchDetails.scorecard?.scorecardId) {
+            teamBTotalRuns += data.runs[index]+ teamBExtras;
             teamBTotalBalls += data.overs[index];
           }
         });
+
 
         setTeamAScore(teamATotalRuns);
         setTeamAovers(calculateOvers(teamATotalBalls));
@@ -82,7 +106,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
         };
 
         try {
-           socket.emit("createScorecard", { matchId, Scorecard: newScorecard });
+          socket.emit("createScorecard", { matchId, Scorecard: newScorecard });
           isScorecardCreatedRef.current = true;
           fetchMatchDetails();
         } catch (error) {
@@ -114,17 +138,21 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
     };
   }, [matchDetails, fetchMatchDetails, calculateOvers]);
 
+  const teamBFinalScore = teamBScore + teamBExtrasRuns
+  const teamAFinalScore = teamAScore + teamAExtrasRuns
   const updateScorecard = useCallback(async () => {
+    console.log(teamBFinalScore)
     if (!isMounted.current) return;
-    
+
     const scorecardId = matchDetails.scorecard?.scorecardId;
     if (scorecardId !== undefined) {
       try {
+        console.log(teamAFinalScore)
         await updateScoreCard({
           scorecardId,
           Scorecard: {
-            teamAScore,
-            teamBScore,
+            teamAScore :teamAFinalScore,
+            teamBScore :teamBFinalScore,
             teamAWickets,
             teamBWickets,
             teamAOvers: parseFloat(teamAovers),
@@ -144,7 +172,7 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
       updateScorecard();
     }
   }, [updateScorecard, matchDetails.isLive]);
-
+console.log(scoreCard?.extras[0])
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-gradient-to-r from-blue-50 to-gray-100 rounded-lg shadow-xl">
       {/* First Team Panel */}
@@ -156,6 +184,9 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
           </p>
           <p className="text-md text-gray-500 transition-all duration-500 ease-in-out">
             Overs: {scoreCard?.teamAOvers ?? 0}
+          </p>
+          <p className="text-md text-gray-500 transition-all duration-500 ease-in-out">
+            Extras: {scoreCard?.extras[1]?.totalExtras ?? 0}
           </p>
         </div>
       </div>
@@ -169,6 +200,9 @@ const ScorePanel: React.FC<ScorePanelProps> = ({ matchDetails, fetchMatchDetails
           </p>
           <p className="text-md text-gray-500 transition-all duration-500 ease-in-out">
             Overs: {scoreCard?.teamBOvers ?? 0}
+          </p>
+          <p className="text-md text-gray-500 transition-all duration-500 ease-in-out">
+          Extras: {scoreCard?.extras[0]?.totalExtras ?? 0}
           </p>
         </div>
       </div>

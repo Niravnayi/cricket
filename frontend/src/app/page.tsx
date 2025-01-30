@@ -17,11 +17,13 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         const matchesResponse = await axiosClient.get("/matches");
-        const teamsResponse = await fetchTeamData();
-        const tournamentsResponse = await fetchAllTournaments();
         setMatches(matchesResponse.data);
-        setTeams(teamsResponse.data);
-        setTournaments(tournamentsResponse.data);
+
+        const teamsResponse = await fetchTeamData();
+        setTeams(teamsResponse);
+        
+        const tournamentsResponse = await fetchAllTournaments();
+        setTournaments(tournamentsResponse);
         console.log(teamsResponse.data);
       } 
       catch (error) {

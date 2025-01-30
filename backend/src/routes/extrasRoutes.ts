@@ -40,8 +40,8 @@ router.get('/scorecard/:id', async (req: Request, res: Response) => {
 // Create new extras
 router.post('/', async (req: Request, res: Response) => {
     const { scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
-
-    if (!scorecardId || !teamId || byes == null || legByes == null || wides == null || noBalls == null || totalExtras == null) {
+    console.log(scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras)
+    if (!scorecardId || !teamId || byes ==undefined || legByes==undefined || wides==undefined || noBalls ==undefined || totalExtras ==undefined ) {
         res.status(400).json({ error: 'Missing required fields' });
         return 
     }
@@ -82,7 +82,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
-
+    console.log(scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras)
     try {
         const team = await prisma.teams.findUnique({
             where: {

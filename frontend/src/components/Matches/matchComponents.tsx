@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { fetchMatchById } from "../../server-actions/matchesActions";
 import MatchInfo from "@/components/Matches/matchInfo";
 import ScorePanel from "@/components/Matches/scorePanel";
-import BattingStatsComponent from "@/components/Matches/battingStatsComponent";
 import BowlingStatsComponent from "@/components/Matches/bowlingStatsComponent";
 import TeamSquadComponents from "./teamSquadComponents";
 import { MatchDetails } from "./types/matchDetails";
 import socket from "@/utils/socket";
 import ScoreCardComponent from "./ScoreCardComponent";
+import ControlPanel from "./ControlPanel";
 
 interface MatchPageProps {
   id: number;
@@ -50,7 +50,7 @@ const MatchPage: React.FC<MatchPageProps> = ({ id }) => {
         isOrganizer={true}
         fetchMatchDetails={fetchMatchDetails}
       />
-      <BattingStatsComponent matchDetails={matchDetails} />
+      <ControlPanel matchDetails = {matchDetails}/>
       <BowlingStatsComponent matchDetails={matchDetails} />
       <ScoreCardComponent id={id} />
       <TeamSquadComponents id={id} />
