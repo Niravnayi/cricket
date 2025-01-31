@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma';
 import { Extras } from '../types/extrasRoute'
-// import { io } from '../index';
+
+import { io } from '../index';
 
 const router = express.Router();
 
@@ -78,18 +79,17 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
+
 // Update extras
 router.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
-    console.log(scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras)
     try {
         const team = await prisma.teams.findUnique({
             where: {
                 teamId: teamId,
             },
-        })
-
+        })  
         if (!team) {
             res.status(404).json({ error: 'Player or Team not found' });
             return;
@@ -105,7 +105,7 @@ router.put('/:id', async (req: Request, res: Response) => {
                 wides,
                 noBalls,
                 totalExtras,
-            },
+            },  
         });
 
         // io.emit('extras', extras);

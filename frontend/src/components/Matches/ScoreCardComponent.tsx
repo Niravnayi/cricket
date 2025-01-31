@@ -10,8 +10,8 @@ interface MatchPageProps {
 }
 
 const ScoreCardComponent = ({ id }: MatchPageProps) => {
-  const [matchDetails, setMatchDetails] = useState<MatchDetails>();
-  const [ scoreCard,setScoreCard ] = useState<Scorecard>();
+  const [matchDetails, setMatchDetails] = useState<MatchDetails | null>(null);
+  const [scoreCard, setScoreCard] = useState<Scorecard>({ battingStats: [], bowlingStats: [] });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,20 +21,30 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
 
         if (matchData?.scorecard?.scorecardId) {
           const scorecardResponse = await getScoreCardbyId({
-            scorecardId: matchData.scorecard.scorecardId
+            scorecardId: matchData.scorecard.scorecardId,
           });
           setScoreCard(scorecardResponse);
         }
-      } 
-      catch (error) {
+      } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
     fetchData();
 
-    socket.on('allBattingStats', () => { /* ... */ });
-    socket.on('allBowlingStats', () => { /* ... */ });
+    socket.on('allBattingStats', (updatedStats) => {
+      setScoreCard((prev) => ({
+        ...prev,
+        battingStats: Array.isArray(updatedStats) ? updatedStats : prev.battingStats,
+      }));
+    });
+
+    socket.on('allBowlingStats', (updatedStats) => {
+      setScoreCard((prev) => ({
+        ...prev,
+        bowlingStats: Array.isArray(updatedStats) ? updatedStats : prev.bowlingStats,
+      }));
+    });
 
     return () => {
       socket.off('allBattingStats');
@@ -43,13 +53,13 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
   }, [id]);
 
   const renderBattingStats = (teamName: string) => {
-    const teamBattingStats = scoreCard?.battingStats.filter(
-      (stat) => stat.teamName === teamName
-    );
-  
+    const teamBattingStats = Array.isArray(scoreCard?.battingStats)
+      ? scoreCard.battingStats.filter((stat) => stat.teamName === teamName)
+      : [];
+
     return (
       <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
-        <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">  
+        <h3 className="text-2xl font-semibold text-center bg-gray-100 py-3">
           {teamName} Batting Stats
         </h3>
         <table className="table-auto border-collapse border border-gray-300 w-full">
@@ -64,14 +74,12 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
             </tr>
           </thead>
           <tbody>
-            {teamBattingStats?.map((player) => (
+            {teamBattingStats.map((player) => (
               <tr key={player.playerName}>
                 <td className="border p-3">
                   {player.playerName}
                   {player.dismissal && (
-                    <div className="text-sm text-gray-600">
-                      {player.dismissal}
-                    </div>
+                    <div className="text-sm text-gray-600">{player.dismissal}</div>
                   )}
                 </td>
                 {player.runs === 0 && player.balls === 0 && player.dismissal === 'Yet to bat' ? (
@@ -94,10 +102,11 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
       </div>
     );
   };
+
   const renderBowlingStats = (teamName: string) => {
-    const teamBowlingStats = scoreCard?.bowlingStats.filter(
-      (stat) => stat.teamName === teamName
-    );
+    const teamBowlingStats = Array.isArray(scoreCard?.bowlingStats)
+      ? scoreCard.bowlingStats.filter((stat) => stat.teamName === teamName)
+      : [];
 
     return (
       <div className="bg-white shadow-lg rounded-lg overflow-hidden mt-6">
@@ -116,7 +125,7 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
             </tr>
           </thead>
           <tbody>
-            {teamBowlingStats?.map((bowler) => (
+            {teamBowlingStats.map((bowler) => (
               <tr key={bowler.playerId} className="hover:bg-gray-100">
                 <td className="border-b p-3">{bowler.playerName}</td>
                 <td className="border-b p-3 text-center">{bowler.overs}</td>
@@ -142,10 +151,8 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
       <div className="space-y-6">
         {matchDetails.firstTeamName && matchDetails.secondTeamName && (
           <div>
-
             {renderBattingStats(matchDetails.firstTeamName)}
             {renderBowlingStats(matchDetails.secondTeamName)}
-
             {renderBattingStats(matchDetails.secondTeamName)}
             {renderBowlingStats(matchDetails.firstTeamName)}
           </div>
