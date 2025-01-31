@@ -3,7 +3,7 @@ import { MatchDetails } from './types/matchDetails';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import socket from '@/utils/socket';
-import { Scorecard } from '../Dashboard/types/dashboard';
+import { Scorecard } from '@/components/Matches/types/matchDetails';
 import { setScoreCard } from '@/server-actions/scorecardActions';
 import { updateMatch } from '@/server-actions/matchesActions';
 
@@ -28,7 +28,7 @@ const MatchInfo: React.FC<MatchInfoProps> = ({ matchDetails, id }) => {
     });
     console.log(matchDetails)
 
-    const scorecard: Scorecard = {
+    const scorecard = {
       teamAScore: 0,
       teamBScore: 0,
       teamAWickets: 0,

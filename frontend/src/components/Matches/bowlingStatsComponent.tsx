@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import socket from '@/utils/socket';
 import axiosClient from '@/utils/axiosClient';
-import { MatchDetails, Scorecard, BowlingStats } from './types/matchDetails';
+import { MatchDetails, Scorecard, BowlingStats } from '@/components/Matches/types/matchDetails';
 import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
 import { getScoreCardbyId } from '@/server-actions/scorecardActions';
 
@@ -52,7 +52,6 @@ const BowlingStatsComponent: React.FC<{ matchDetails: MatchDetails }> = ({ match
   
     fetchScoreCard();
     socket.on('getScoreCard', (data: { scorecard: Scorecard }) => {
-      console.log('all bowling stats')
       setScoreCard(data.scorecard);
     })
 

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import DashboardTournaments from "@/components/Dashboard/dashboardTournaments";
+import DashboardTournaments from "@/components/Dashboard/DashboardTournaments";
 
 const Dashboard = () => {
 

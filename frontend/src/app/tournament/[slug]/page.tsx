@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import TournamentMatches from "@/components/Organizer/Tournament/tournamentMatches";
+import TournamentMatches from "@/components/Organizer/Tournament/TournamentMatches";
 import { useParams } from "next/navigation";
 
 export default function Tournament() {

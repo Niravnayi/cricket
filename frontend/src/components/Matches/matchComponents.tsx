@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { fetchMatchById } from "../../server-actions/matchesActions";
-import MatchInfo from "@/components/Matches/matchInfo";
-import ScorePanel from "@/components/Matches/scorePanel";
-import BowlingStatsComponent from "@/components/Matches/bowlingStatsComponent";
-import TeamSquadComponents from "./teamSquadComponents";
+import MatchInfo from "@/components/Matches/MatchInfo";
+import ScorePanel from "@/components/Matches/ScorePanel";
+import BowlingStatsComponent from "@/components/Matches/BowlingStatsComponent";
+import TeamSquadComponents from "./TeamSquadComponents";
 import { MatchDetails } from "./types/matchDetails";
 import socket from "@/utils/socket";
 import ScoreCardComponent from "./ScoreCardComponent";

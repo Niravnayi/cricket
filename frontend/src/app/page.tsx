@@ -24,7 +24,6 @@ const HomePage = () => {
         
         const tournamentsResponse = await fetchAllTournaments();
         setTournaments(tournamentsResponse);
-        console.log(teamsResponse.data);
       } 
       catch (error) {
         console.error("Error fetching data:", error);
