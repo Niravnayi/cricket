@@ -37,7 +37,7 @@ export interface Scorecard {
   teamBOvers: number;
   battingStats?: BattingStats[];
   bowlingStats?: BowlingStats[];
-  extras?: Extras;
+  extras?: Extras[];
 }
 
 export interface BattingStats {
@@ -85,6 +85,13 @@ export interface BowlingStats {
 export interface Extras {
   teamAExtras: number;
   teamBExtras: number;
+  byes:number;
+  extrasId:number;
+  legByes:number;
+  teamName?:string;
+  noBalls:number;
+  totalExtras:number;
+  wides:number;
 }
 
 export interface MatchState {

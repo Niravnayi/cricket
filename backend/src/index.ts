@@ -73,6 +73,14 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
+
+  socket.on('extrasUpdate', (data) => {
+    console.log('Received extras update:', data);
+    console.log(data.scorecardId, data.teamId, data.byes, data.legByes, data.wides, data.noBalls, data.totalExtras)
+    io.emit('extrasUpdate', { 
+        scorecardId:data.scorecardId,teamId: data.teamId, byes:data.byes, legByes:data.legByes, wides:data.wides, noBalls:data.noBalls, totalExtras:data.totalExtras
+      });
+});
 });
 
 
