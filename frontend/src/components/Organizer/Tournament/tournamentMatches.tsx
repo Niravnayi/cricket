@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { fetchTournamentMatches } from "@/server-actions/matchesActions";
-import { Match } from "./Types/tournamentType";
+import { Match } from "@/components/Organizer/Tournament/types/tournamentType";
 
 const TournamentMatches = ({tournamentId}:{tournamentId:number}) => {
   const [tournamentMatches, setTournamentMatches] = useState<Match[] | null>(null);

@@ -1,5 +1,5 @@
 'use client'
-import MatchComponents from '@/components/Organizer/Matches/matchComponents';
+import MatchComponents from '@/components/Organizer/Matches/MatchComponents';
 import { useParams } from 'next/navigation';
 
 const Matches = () => {

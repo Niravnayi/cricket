@@ -1,6 +1,6 @@
 import React, { useState} from 'react';
-import TournamentCard from '@/components/Dashboard/tournamentCard';
-import DashboadForm from '@/components/Dashboard/dashboardForm';
+import TournamentCard from '@/components/Dashboard/TournamentCard';
+import DashboadForm from '@/components/Dashboard/DashboardForm';
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { Team, Tournament } from './types/dashboard';
@@ -18,11 +18,12 @@ const DashboardTournaments = () => {
   const fetchTournamentsData = async () => {
     try {
       const team = await fetchTeamData();
-      console.log(team)
       setTeamData(team);
+
       const tournamentData = await fetchOrganizerTournaments(1);
       setTournaments(tournamentData);
-    } catch (error) {
+    } 
+    catch (error) {
       console.log(error)
     }
   };

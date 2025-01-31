@@ -51,7 +51,7 @@ router.post('/', async (req: Request, res: Response) => {
         const createdStats = [];
         for (const stat of battingStats) {
             const { scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal } = stat;
-            console.log(scorecardId, playerId, teamId, runs, balls, fours, sixes, strikeRate, dismissal)
+
             if (!scorecardId || !playerId == undefined || !teamId == undefined || !runs == undefined || !balls == undefined || !fours == undefined || !sixes == undefined || !strikeRate == undefined || !dismissal) {
                 res.status(400).json({ error: 'Missing required fields in one or more batting stats' });
                 return;
@@ -96,7 +96,7 @@ router.post('/', async (req: Request, res: Response) => {
             createdStats.push(newBattingStat);
         }
 
-        res.status(201).json(createdStats);  // Respond with all the created stats
+        res.status(201).json(createdStats); 
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error adding batting stats' });

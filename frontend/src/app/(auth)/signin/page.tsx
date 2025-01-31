@@ -19,16 +19,16 @@ const SignIn = () => {
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     try {
-      
-       await login(data.email, data.password, data.role);
+
+      await login(data.email, data.password, data.role);
 
       router.push('/');
-    } 
-    catch (err: unknown) { 
+    }
+    catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred'); 
+        setError('An unknown error occurred');
       }
     }
   };

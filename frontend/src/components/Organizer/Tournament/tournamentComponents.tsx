@@ -1,14 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-
 import { Match } from "@/components/Organizer/Tournament/types/tournamentType";
 import MatchModal from "@/components/Organizer/Tournament/MatchModal";
 import Link from "next/link";
 import { deleteMatch, fetchTournamentMatches } from "@/server-actions/matchesActions";
 
 export default function TournamentComponent({ tournamentId }: { tournamentId: number }) {
-  const [matches, setMatches] = useState<Match[]>([]);
+  const [matches, setMatches] = useState<Match[] | "Unauthorized">([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>("scheduled");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -20,7 +19,8 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
         const fetchedData = await fetchTournamentMatches(tournamentId);
         setMatches(fetchedData);
       } catch (error) {
-        console.log("Error fetching tournament matches:", error);
+        console.error("Error fetching tournament matches:", error);
+        setMatches("Unauthorized"); 
       } finally {
         setLoading(false);
       }
@@ -36,13 +36,16 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
   const handleDelete = async (matchId: number) => {
     try {
       await deleteMatch(matchId);
-      setMatches(matches.filter((match) => match.matchId !== matchId));
+      setMatches((prevMatches) =>
+        prevMatches !== "Unauthorized" ? prevMatches.filter((match) => match.matchId !== matchId) : prevMatches
+      );
     } catch (error) {
       console.error("Error deleting match:", error);
     }
   };
 
   const handleEditMatch = (matchId: number) => {
+    if (matches === "Unauthorized") return;
     const matchToEdit = matches.find((match) => match.matchId === matchId);
     if (matchToEdit) {
       setEditingMatch(matchToEdit);
@@ -51,18 +54,19 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
   };
 
   const renderMatches = (status: string) => {
+    if (matches === "Unauthorized") return null; // Prevent errors
     return matches
       .filter((match) => {
         if (status === "live") return match.isLive;
         if (status === "scheduled") return !match.isLive && !match.isCompleted;
-        if (status === "completed") return match.isCompleted;
+        if (status === "completed") return match.isCompleted;  
         return false;
       })
       .map((match) => (
         <div key={match.matchId} className="bg-white shadow-lg rounded-lg p-4 mb-4 border">
-          <Link href={`/matches/${match.matchId}`} key={match.matchId}>
-          <h5 className="text-lg font-semibold text-gray-800">{`${match.firstTeamName} vs ${match.secondTeamName}`}</h5>
-        </Link> 
+          <Link href={`/matches/${match.matchId}`}>
+            <h5 className="text-lg font-semibold text-gray-800">{`${match.firstTeamName} vs ${match.secondTeamName}`}</h5>
+          </Link>
           <p className="text-sm text-gray-600">{`Venue: ${match.venue}`}</p>
           <p className="text-sm text-gray-600">{`Date: ${new Date(match.dateTime).toLocaleString()}`}</p>
           <p className="text-sm text-gray-600">{`Result: ${match.result}`}</p>
@@ -78,10 +82,23 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
       ));
   };
 
+  if (matches === "Unauthorized") {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold text-red-600">Unauthorized Access</h1>
+        <p className="text-gray-700">You do not have permission to view this tournament's matches.</p>
+        <Link href="/">
+          <Button className="mt-4 bg-gray-500 text-white">Go Back</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h3 className="text-2xl font-bold mb-6">Matches for Tournament ID: {tournamentId}</h3>
 
+      {/* Tab Controls */}
       <div className="mb-4 flex space-x-4">
         <Button
           className={`px-4 py-2 rounded-md ${activeTab === "live" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
@@ -103,6 +120,7 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
         </Button>
       </div>
 
+      {/* Match Listing */}
       {loading ? (
         <div className="text-center text-lg font-semibold">Loading matches...</div>
       ) : (
@@ -113,6 +131,7 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
         </div>
       )}
 
+      {/* Create Match Button */}
       <Button
         className="mt-6 px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600"
         onClick={() => {
@@ -123,6 +142,7 @@ export default function TournamentComponent({ tournamentId }: { tournamentId: nu
         Create Match
       </Button>
 
+      {/* Match Modal */}
       {isModalOpen && (
         <MatchModal
           tournamentId={tournamentId}

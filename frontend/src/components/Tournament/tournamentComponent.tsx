@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import AnimatedArrow from './animatedArrow';
+import AnimatedArrow from '@/components/Tournament/AnimatedArrow';
 import { Tournament } from '@/components/Tournament/types/tournament';
 import { fetchAllTournaments } from '@/server-actions/tournamentsActions';
 
