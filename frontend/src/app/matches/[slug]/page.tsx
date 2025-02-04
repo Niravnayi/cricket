@@ -1,6 +1,6 @@
 // Matches.tsx
 "use client";
-import MatchComponents from "@/components/Matches/matchComponents";
+import MatchComponents from "@/components/Matches/MatchComponents";
 import React from "react";
 import { useParams } from "next/navigation";
 const Matches = () => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosClient from '@/utils/axiosClient';
-import BattingStatsComponent from './battingStatsComponent';
-import { MatchDetails } from './types/matchDetails';
+import BattingStatsComponent from './BattingStatsComponent';
+import { MatchDetails } from '@/components/Matches/types/matchDetails';
 import { getBattingStats } from '@/server-actions/battingStatsActions';
 import socket from '@/utils/socket';
 
@@ -9,9 +9,6 @@ const CombinedComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDeta
   const [strikerIndex, setStrikerIndex] = useState(0);
   const [nonStrikerIndex, setNonStrikerIndex] = useState(1);
   const [extras, setExtras] = useState({ byes: 0, legByes: 0, wides: 0, noBalls: 0, total: 0 });
-
-  // Calculate extra balls (byes and legByes count as valid deliveries)
-
 
   const handleStrikeChange = () => {
     setStrikerIndex((prev) => (prev === 0 ? 1 : 0));
@@ -23,8 +20,8 @@ const CombinedComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDeta
       legByes: 0,
       wides: 0,
       noBalls: 0,
-      [type]: value, // Only one type is selected at a time
-      total: value,  // Total will be equal to the selected value
+      [type]: value, 
+      total: value,  
     };
     setExtras(updatedExtras);
   };
@@ -35,7 +32,7 @@ const CombinedComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDeta
 
   const handleSaveAll = async () => {
     try {
-      if (matchDetails.scorecard?.extras?.length > 0) {
+      if (matchDetails.scorecard?.extras?.length  > 0) {
         const extrasId = matchDetails.scorecard.extras[0].extrasId;
         const existingExtras = matchDetails.scorecard.extras[0];
 
@@ -46,7 +43,6 @@ const CombinedComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDeta
           noBalls: (existingExtras.noBalls ?? 0) + extras.noBalls,
           totalExtras: (existingExtras.totalExtras ?? 0) + extras.total,
         };
-        console.log(updatedExtras)
         await axiosClient.put(`/extras/${extrasId}`, {
           scorecardId: matchDetails.scorecard?.scorecardId,
           teamId: matchDetails.secondTeamId,
@@ -73,7 +69,6 @@ const CombinedComponent: React.FC<{ matchDetails: MatchDetails }> = ({ matchDeta
         handleStrikeChange();
       }
 
-      console.log('All changes saved successfully');
       handleClearExtras();
     } catch (error) {
       console.error('Error saving changes:', error);

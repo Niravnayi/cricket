@@ -24,7 +24,6 @@ const HomePage = () => {
         
         const tournamentsResponse = await fetchAllTournaments();
         setTournaments(tournamentsResponse);
-        console.log(teamsResponse.data);
       } 
       catch (error) {
         console.error("Error fetching data:", error);
@@ -179,7 +178,8 @@ const HomePage = () => {
                 <ul className="list-disc list-inside">
                   {team.players.map((player) => (
                     <li key={player.playerId} className="text-sm text-gray-600">
-                      {player.playerName} ({player.playerRole})
+
+                      {player.playerName} 
                     </li>
                   ))}
                 </ul>

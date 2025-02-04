@@ -13,10 +13,17 @@ export async function fetchMatchById(id: number) {
 
 export const fetchTournamentMatches = async (id: number) => {
   try {
+   
     const response = await axiosClient.get(`/tournaments/${id}`);
+
+    if(response.data.error === 'Unauthorized'){
+        return response.data.error
+    }
+
     if (response.status === 200) {
       return response.data.matches;
     }
+    
     throw new Error(`Unexpected response: ${response.status}`);
   } 
   catch (err) {

@@ -29,15 +29,28 @@ export interface PlayerStats {
 
 export interface Scorecard {
   teamAScore: number;
+  teamBScore: number;
   scorecardId?: number;
   teamAWickets: number;
-  teamAOvers: number;
-  teamBScore: number;
   teamBWickets: number;
+  teamAOvers: number;
   teamBOvers: number;
   battingStats?: BattingStats[];
   bowlingStats?: BowlingStats[];
   extras?: Extras[];
+}
+
+export interface Team {
+  id: number;
+  tournamentId: number;
+  playerName:string;
+  playerId?:number,
+  teamId: number;
+  teamName:string
+  team: {
+    teamId: number;
+    teamName: string;
+  };
 }
 
 export interface BattingStats {
@@ -53,20 +66,6 @@ export interface BattingStats {
   sixes: number;
   strikeRate: number;
   dismissal: string;
-}
-
-
-export interface Team {
-  id: number;
-  tournamentId: number;
-  playerName:string;
-  playerId?:number,
-  teamId: number;
-  teamName:string
-  team: {
-    teamId: number;
-    teamName: string;
-  };
 }
 
 export interface BowlingStats {

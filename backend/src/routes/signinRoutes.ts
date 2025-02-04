@@ -2,11 +2,10 @@ import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import prisma from '../../prisma/index';
 import { generateToken } from '../utils/generateToken';
-import { setAuthCookies } from '../utils/cookie';
 
 const router = express.Router();
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/' , async (req: Request, res: Response) => {
     const { email, password, role } = req.body;
 
     if (!email || !password || !role) {
@@ -30,9 +29,8 @@ router.post('/', async (req: Request, res: Response) => {
                 return;
             }
 
-            const token = generateToken(user.userId.toString(), role);
-            setAuthCookies(res, token, user.userId.toString(), role);
-
+            const token = generateToken(user.userId, role);
+            res.cookie('authToken', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
             res.status(200).json({
                 message: 'Login successful',
                 user: {
@@ -57,9 +55,8 @@ router.post('/', async (req: Request, res: Response) => {
                 return;
             }
 
-            const token = generateToken(organizer.organizerId.toString(), role);
-            setAuthCookies(res, token, organizer.organizerId.toString(), role);
-
+            const token = generateToken(organizer.organizerId, role);
+            res.cookie('authToken', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
             res.status(200).json({
                 message: 'Login successful',
                 user: {

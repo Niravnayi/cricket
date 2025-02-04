@@ -1,8 +1,16 @@
 import express, { Request, Response } from 'express';
 import prisma from '../../prisma/index';
 import { Tournament } from '../types/tournamentsRoute';
+import { authMiddleware } from '../middleware/auth';
 // import { io } from '../index';
 
+interface AuthRequest extends Request {
+    user?: {
+      id: string;
+      role: string;
+    };
+  }
+  
 const router = express.Router();
 
 // Get all tournaments
@@ -23,8 +31,12 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Get a specific tournament
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id',  async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
+
+    // const user = req.user ;
+    
+    // console.log("Authenticated User from api:", user)
 
     if (isNaN(Number(id))) {
         res.status(400).json({ error: 'Invalid tournament ID' });
@@ -32,6 +44,12 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     try {
+
+        // if( user?.role === 'user') {
+        //     res.status(400).json({ error: 'Unauthorized' });
+        //     return
+        // }
+
         const tournament = await prisma.tournaments.findUnique({
             where: { tournamentId: Number(id) },
             include: {

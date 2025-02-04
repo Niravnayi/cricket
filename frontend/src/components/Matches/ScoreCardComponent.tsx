@@ -3,7 +3,7 @@ import { fetchMatchById } from '../../server-actions/matchesActions';
 import { MatchDetails } from './types/matchDetails';
 import socket from '@/utils/socket';
 import { getScoreCardbyId } from '@/server-actions/scorecardActions';
-import { Scorecard } from '@/app/matches/types/types';
+import { BattingStats, BowlingStats, Scorecard } from '@/app/matches/types/types';
 
 interface MatchPageProps {
   id: number;
@@ -11,7 +11,7 @@ interface MatchPageProps {
 
 const ScoreCardComponent = ({ id }: MatchPageProps) => {
   const [matchDetails, setMatchDetails] = useState<MatchDetails | null>(null);
-  const [scoreCard, setScoreCard] = useState<Scorecard>({ battingStats: [], bowlingStats: [] });
+  const [scoreCard, setScoreCard] = useState<Scorecard>();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,18 +32,38 @@ const ScoreCardComponent = ({ id }: MatchPageProps) => {
 
     fetchData();
 
-    socket.on('allBattingStats', (updatedStats) => {
-      setScoreCard((prev) => ({
-        ...prev,
-        battingStats: Array.isArray(updatedStats) ? updatedStats : prev.battingStats,
-      }));
+    socket.on('allBattingStats', (updatedStats: BattingStats) => {
+      setScoreCard((prev) => {
+        if (!prev) return prev; // Ensure `prev` exists
+    
+        return {
+          ...prev,
+          battingStats: Array.isArray(updatedStats) ? updatedStats : prev.battingStats ?? [],
+          teamAScore: prev.teamAScore ?? 0,  
+          teamBScore: prev.teamBScore ?? 0,
+          teamAWickets: prev.teamAWickets ?? 0,
+          teamBWickets: prev.teamBWickets ?? 0,
+          teamAOvers: prev.teamAOvers ?? 0,
+          teamBOvers: prev.teamBOvers ?? 0,
+        };
+      });
     });
-
-    socket.on('allBowlingStats', (updatedStats) => {
-      setScoreCard((prev) => ({
-        ...prev,
-        bowlingStats: Array.isArray(updatedStats) ? updatedStats : prev.bowlingStats,
-      }));
+    
+    socket.on('allBowlingStats', (updatedStats: BowlingStats) => {
+      setScoreCard((prev) => {
+        if (!prev) return prev; 
+    
+        return {
+          ...prev,
+          bowlingStats: Array.isArray(updatedStats) ? updatedStats : prev.bowlingStats ?? [],
+          teamAScore: prev.teamAScore ?? 0,
+          teamBScore: prev.teamBScore ?? 0,
+          teamAWickets: prev.teamAWickets ?? 0,
+          teamBWickets: prev.teamBWickets ?? 0,
+          teamAOvers: prev.teamAOvers ?? 0,
+          teamBOvers: prev.teamBOvers ?? 0,
+        };
+      });
     });
 
     return () => {

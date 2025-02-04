@@ -41,7 +41,7 @@ router.get('/scorecard/:id', async (req: Request, res: Response) => {
 // Create new extras
 router.post('/', async (req: Request, res: Response) => {
     const { scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras }: Extras = req.body;
-    console.log(scorecardId, teamId, byes, legByes, wides, noBalls, totalExtras)
+
     if (!scorecardId || !teamId || byes ==undefined || legByes==undefined || wides==undefined || noBalls ==undefined || totalExtras ==undefined ) {
         res.status(400).json({ error: 'Missing required fields' });
         return 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
-import { Team, Tournament } from './types/dashboard';
+import { Team, Tournament } from '@/components/Dashboard/types/dashboard';
 
 interface TournamentFormProps {
   tournamentData: Tournament | null;

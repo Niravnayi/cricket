@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import socket from '@/utils/socket';
 import axiosClient from '@/utils/axiosClient';
-import { MatchDetails, PlayerStats, BowlingStats, MatchState, Scorecard } from './types/matchDetails';
+import { MatchDetails, PlayerStats, BowlingStats, MatchState, Scorecard } from '@/components/Matches/types/matchDetails';
 import { getMatchState } from '@/server-actions/matchStateActions';
-import { getBattingStats } from '@/server-actions/battingStatsActions';
-import { getBowlingStats } from '@/server-actions/bowlingStatsAction';
+import { getBattingStats, updateBattingStats } from '@/server-actions/battingStatsActions';
+import { getBowlingStats, updateBowlingStats } from '@/server-actions/bowlingStatsAction';
 import { getScoreCardbyId } from '@/server-actions/scorecardActions';
 import { updateMatchState } from '@/server-actions/matchStateActions';
+import { fetchMatchById } from '@/server-actions/matchesActions';
 
 interface BattingStatsComponentProps {
   matchDetails: MatchDetails;
@@ -22,17 +23,14 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
   const [pendingRuns, setPendingRuns] = useState<number>(0);
   const [battingStats, setBattingStats] = useState<PlayerStats[]>([]);
   const [dismissal, setDismissal] = useState<string | null>(null)
-  console.log(strikerIndex)
-  
   const [matchState, setMatchState] = useState<MatchState | null>(null);
 
   useEffect(() => {
     async function fetchBattingStats() {
+      const matchId = matchDetails.matchId;
       try {
-        const matchId = matchDetails.matchId;
-        const response = await axiosClient.get(`/matches/${matchId}`);
+        const matchData = await fetchMatchById(matchId);
 
-        const matchData = response.data;
         if (matchData.scorecard?.battingStats) {
           setBattingStats(matchData.scorecard.battingStats);
         }
@@ -51,7 +49,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
       try {
         if (matchDetails?.scorecard?.battingStats && matchDetails?.scorecard?.bowlingStats && matchDetails?.scorecard?.scorecardId && matchDetails.scorecard.battingStats.length > 0 && matchDetails.scorecard.bowlingStats.length > 0) {
           const response = await getMatchState({ matchId: matchDetails.matchId });
-          console.log("get match state",response)
           setMatchState(response);
         }
       }
@@ -128,7 +125,7 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
   
         socket.emit('dismissedBatter', { playerId: player.playerId });
         setMatchState((prevState) => {
-          if (!prevState) return prevState; // Ensure previous state exists
+          if (!prevState) return prevState; 
         
           // Check if any batter needs to be updated
           const isBatter1Out = prevState.batter1Id === player.playerId;
@@ -143,11 +140,8 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
             batter2Id: isBatter2Out ? 0 : prevState.batter2Id,
           };
         });
-        
-        // Use `useEffect` to trigger API update only when matchState changes
-        console.log("Updated matchState:", matchState); 
-        
-          if (!matchState) return; // Ensure state exists
+            
+          if (!matchState) return; 
         
           // **Check if none of the values are zero, then return without updating API**
           if (matchState.batter1Id !== 0 && matchState.batter2Id !== 0) return;
@@ -177,7 +171,6 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
     }
   };
   
-
   const handleSaveClick = async () => {
     if (editingPlayer) {
       const updatedRuns = editingPlayer.runs + pendingRuns;
@@ -187,18 +180,23 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
       const updatedBalls = editingPlayer.balls + 1;
 
       try {
-        await axiosClient.put(`/batting-stats/${editingPlayer.battingStatsId}`, {
-          scorecardId: editingPlayer.scorecardId,
-          playerId: editingPlayer.playerId,
-          teamId,
-          runs: updatedRuns,
-          balls: updatedBalls,
-          fours: editingPlayer.fours,
-          sixes: editingPlayer.sixes,
-          strikeRate: parseInt(((updatedRuns / updatedBalls) * 100).toFixed(2)),
-          dismissal: editingPlayer.dismissal,
-        });
 
+        const updatedBattingStats = {
+          scorecardId: editingPlayer.scorecardId ?? 0, 
+          playerId: editingPlayer.playerId ?? 0,
+          teamId,
+          teamName: editingPlayer.teamName ?? '',
+          runs: updatedRuns ?? 0,
+          balls: updatedBalls ?? 0,
+          fours: editingPlayer.fours ?? 0,
+          sixes: editingPlayer.sixes ?? 0,
+          strikeRate: parseInt(((updatedRuns / updatedBalls) * 100).toFixed(2)) ?? 0,
+          dismissal: editingPlayer.dismissal ?? '',
+          battingStatsId: editingPlayer.battingStatsId ?? 0,
+        };
+
+        await updateBattingStats(updatedBattingStats);
+        
         await getBattingStats()
 
         socket.on("teamUpdate", (data: {
@@ -233,8 +231,8 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
         const currentBowlerId = matchState?.bowlerId;
         const currentScorecardId = matchDetails.scorecard?.scorecardId
         if (currentBowlerId) {
-          const bowlingStatsResponse = await axiosClient.get(`/bowling-stats/`);
-          const currentBowlerStats = bowlingStatsResponse.data.filter(
+          const bowlingStatsResponse = await getBowlingStats();
+          const currentBowlerStats = bowlingStatsResponse.filter(
             (bowler: BowlingStats) => bowler.playerId === currentBowlerId && bowler.scorecardId === currentScorecardId
           )[0];
 
@@ -245,12 +243,12 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
               ? matchDetails.secondTeamId
               : matchDetails.firstTeamId;
 
-          console.log("current bowler over",currentBowlerStats.overs)
           const currentOvers = currentBowlerStats ? currentBowlerStats.overs : 0;
           const totalBalls = Math.floor(currentOvers) * 6 + (currentOvers % 1) * 10; 
           
           const updatedBallsCount = totalBalls + 1; 
           const updatedOvers = Math.floor(updatedBallsCount / 6) + (updatedBallsCount % 6) * 0.1; 
+
           const updatedBowlerStats = {
             ...currentBowlerStats,
             runsConceded: addedRuns,
@@ -259,8 +257,8 @@ const BattingStatsComponent: React.FC<BattingStatsComponentProps> = ({   matchDe
             wickets: currentBowlerStats ? currentBowlerStats.wickets + (dismissal ? 1 : 0) : 0,
             economyRate: parseInt((currentBowlerStats.runsConceded / updatedBallsCount).toFixed(2)),
           };
-          console.log("updated bowler stats",updatedBowlerStats)
-          await axiosClient.put(`/bowling-stats/${currentBowlerId}`, updatedBowlerStats);
+          
+          await updateBowlingStats({ bowlingStatsData: updatedBowlerStats, bowlingStatsId: currentBowlerStats.bowlingStatsId });
 
           if (updatedBallsCount >= 6) {
             socket.emit('removeBowlerFromMatchState', currentBowlerId);
